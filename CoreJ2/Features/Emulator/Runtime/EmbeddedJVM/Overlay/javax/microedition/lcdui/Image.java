@@ -73,7 +73,13 @@ public class Image {
         if (name == null) {
             throw new NullPointerException();
         }
+        long t0 = System.currentTimeMillis();
         PlatformImage t = new PlatformImage(name);
+        long dt = System.currentTimeMillis() - t0;
+        if (dt > 100 || t.isNull) {
+            System.out.println("corej2-lcdui: createImage '" + name + "' " + dt + "ms null=" + t.isNull);
+            System.out.flush();
+        }
         if (t.isNull) {
             throw new IOException();
         }

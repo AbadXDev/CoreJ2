@@ -270,6 +270,7 @@ org/recompile/mobile/MIDletLoader$SiemensInputStream.class
 org/recompile/mobile/MIDletLoader.class
 org/recompile/mobile/Mobile.class
 org/recompile/mobile/MobilePlatform$1.class
+org/recompile/mobile/MobilePlatform$2.class
 org/recompile/mobile/MobilePlatform.class
 org/recompile/mobile/PlatformFont.class
 org/recompile/mobile/PlatformGraphics.class

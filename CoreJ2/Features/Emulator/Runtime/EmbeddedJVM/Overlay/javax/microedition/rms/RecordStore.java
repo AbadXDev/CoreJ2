@@ -101,6 +101,7 @@ public class RecordStore {
             throw new RecordStoreException("Problem Reading Record Store: " + rmsFile);
         }
         System.out.println("corej2-rms: open " + rmsFile + " records=" + getNumRecords());
+        System.out.flush();
     }
 
     public static RecordStore openRecordStore(String recordStoreName, boolean createIfNecessary)
@@ -156,6 +157,7 @@ public class RecordStore {
             version++;
             save();
             fireAdded(lastModified);
+            System.out.println("corej2-rms: addRecord id=" + lastModified + " len=" + copy.length);
             return lastModified;
         } catch (Exception e) {
             throw new RecordStoreException("Can't Add RMS Record");
@@ -182,6 +184,7 @@ public class RecordStore {
         lastModified = (int) (System.currentTimeMillis() & 0x7fffffff);
         save();
         fireChanged(recordId);
+        System.out.println("corej2-rms: setRecord id=" + recordId + " len=" + copy.length);
     }
 
     public void deleteRecord(int recordId) throws RecordStoreException, InvalidRecordIDException {
@@ -274,6 +277,8 @@ public class RecordStore {
     }
 
     public RecordEnumeration enumerateRecords(RecordFilter filter, RecordComparator comparator, boolean keepUpdated) {
+        System.out.println("corej2-rms: enumerate keepUpdated=" + keepUpdated);
+        System.out.flush();
         return new EnumerationImpl(filter, comparator, keepUpdated);
     }
 
@@ -360,10 +365,17 @@ public class RecordStore {
             this.filter = filter;
             this.comparator = comparator;
             this.keepupdated = keepUpdated;
-            build();
+            // Constructor starts at the beginning.
+            build(true);
         }
 
-        private void build() {
+        /**
+         * Rebuild the id list. When {@code resetIndex} is false (keepUpdated refresh
+         * from hasNext/next), preserve the cursor so iteration can finish. Resetting
+         * to 0 on every keepUpdated refresh made {@code while (hasNext) next()} spin
+         * forever on the first record (Diamond Rush post-language hang).
+         */
+        private void build(boolean resetIndex) {
             int[] tmp = new int[records.size() + 1];
             count = 0;
             for (int id = 1; id < records.size(); id++) {
@@ -392,17 +404,22 @@ public class RecordStore {
                     }
                 }
             }
-            index = 0;
+            if (resetIndex) {
+                index = 0;
+            } else if (index > count) {
+                index = count;
+            }
         }
 
         public void destroy() {
             elements = new int[0];
             count = 0;
+            index = 0;
         }
 
         public boolean hasNextElement() {
             if (keepupdated) {
-                rebuild();
+                build(false);
             }
             return index < count;
         }
@@ -424,7 +441,12 @@ public class RecordStore {
         }
 
         public int nextRecordId() throws InvalidRecordIDException {
-            if (!hasNextElement()) {
+            // Do not call hasNextElement() here: with keepUpdated that rebuilds and
+            // must not reset the cursor mid-advance.
+            if (keepupdated) {
+                build(false);
+            }
+            if (index >= count) {
                 throw new InvalidRecordIDException();
             }
             return elements[index++];
@@ -432,7 +454,7 @@ public class RecordStore {
 
         public int numRecords() {
             if (keepupdated) {
-                rebuild();
+                build(false);
             }
             return count;
         }
@@ -449,7 +471,8 @@ public class RecordStore {
         }
 
         public void rebuild() {
-            build();
+            // Explicit API rebuild restarts enumeration from the beginning.
+            build(true);
         }
 
         public void reset() {

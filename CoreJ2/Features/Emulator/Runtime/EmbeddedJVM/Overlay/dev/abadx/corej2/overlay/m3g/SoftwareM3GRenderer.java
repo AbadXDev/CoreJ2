@@ -231,15 +231,19 @@ public final class SoftwareM3GRenderer {
             int vw,
             int vh
     ) {
-        float w0 = eye[i0 * 4 + 3];
-        float w1 = eye[i1 * 4 + 3];
-        float w2 = eye[i2 * 4 + 3];
-        if (w0 == 0 || w1 == 0 || w2 == 0) {
+        float clipW0 = eye[i0 * 4 + 3];
+        float clipW1 = eye[i1 * 4 + 3];
+        float clipW2 = eye[i2 * 4 + 3];
+        // Clip against near (w<=0) — reject tris fully behind the camera.
+        if (clipW0 <= 0 && clipW1 <= 0 && clipW2 <= 0) {
             return;
         }
-        float x0 = eye[i0 * 4] / w0, y0 = eye[i0 * 4 + 1] / w0, z0 = eye[i0 * 4 + 2] / w0;
-        float x1 = eye[i1 * 4] / w1, y1 = eye[i1 * 4 + 1] / w1, z1 = eye[i1 * 4 + 2] / w1;
-        float x2 = eye[i2 * 4] / w2, y2 = eye[i2 * 4 + 1] / w2, z2 = eye[i2 * 4 + 2] / w2;
+        if (clipW0 == 0 || clipW1 == 0 || clipW2 == 0) {
+            return;
+        }
+        float x0 = eye[i0 * 4] / clipW0, y0 = eye[i0 * 4 + 1] / clipW0, z0 = eye[i0 * 4 + 2] / clipW0;
+        float x1 = eye[i1 * 4] / clipW1, y1 = eye[i1 * 4 + 1] / clipW1, z1 = eye[i1 * 4 + 2] / clipW1;
+        float x2 = eye[i2 * 4] / clipW2, y2 = eye[i2 * 4 + 1] / clipW2, z2 = eye[i2 * 4 + 2] / clipW2;
 
         // NDC → viewport
         float sx0 = vx + (x0 * 0.5f + 0.5f) * vw;
@@ -269,15 +273,31 @@ public final class SoftwareM3GRenderer {
         sampleUV(uvs, uvScaleBias, i1, uv1);
         sampleUV(uvs, uvScaleBias, i2, uv2);
 
+        // Perspective-correct: interpolate attrib/w, then divide by 1/w.
+        float iw0 = 1f / clipW0, iw1 = 1f / clipW1, iw2 = 1f / clipW2;
+        float u0w = uv0[0] * iw0, v0w = uv0[1] * iw0;
+        float u1w = uv1[0] * iw1, v1w = uv1[1] * iw1;
+        float u2w = uv2[0] * iw2, v2w = uv2[1] * iw2;
+        float z0w = z0 * iw0, z1w = z1 * iw1, z2w = z2 * iw2;
+
+        int wrapS = texture != null ? texture.getWrappingS() : Texture2D.WRAP_REPEAT;
+        int wrapT = texture != null ? texture.getWrappingT() : Texture2D.WRAP_REPEAT;
+        int filter = texture != null ? texture.getImageFilter() : Texture2D.FILTER_NEAREST;
+        int blend = texture != null ? texture.getBlending() : Texture2D.FUNC_REPLACE;
+
         for (int y = minY; y <= maxY; y++) {
             for (int x = minX; x <= maxX; x++) {
-                float w0b = edge(sx1, sy1, sx2, sy2, x + 0.5f, y + 0.5f) / area;
-                float w1b = edge(sx2, sy2, sx0, sy0, x + 0.5f, y + 0.5f) / area;
-                float w2b = edge(sx0, sy0, sx1, sy1, x + 0.5f, y + 0.5f) / area;
-                if (w0b < 0 || w1b < 0 || w2b < 0) {
+                float a0 = edge(sx1, sy1, sx2, sy2, x + 0.5f, y + 0.5f) / area;
+                float a1 = edge(sx2, sy2, sx0, sy0, x + 0.5f, y + 0.5f) / area;
+                float a2 = edge(sx0, sy0, sx1, sy1, x + 0.5f, y + 0.5f) / area;
+                if (a0 < 0 || a1 < 0 || a2 < 0) {
                     continue;
                 }
-                float z = w0b * z0 + w1b * z1 + w2b * z2;
+                float invW = a0 * iw0 + a1 * iw1 + a2 * iw2;
+                if (invW == 0f) {
+                    continue;
+                }
+                float z = (a0 * z0w + a1 * z1w + a2 * z2w) / invW;
                 int di = y * color.width + x;
                 if (depth != null) {
                     if (z >= depth[di]) {
@@ -285,15 +305,59 @@ public final class SoftwareM3GRenderer {
                     }
                     depth[di] = z;
                 }
-                int argb = defaultColor;
+                int frag = defaultColor | 0xFF000000;
                 if (texture != null && texture.getImage() != null) {
-                    float u = w0b * uv0[0] + w1b * uv1[0] + w2b * uv2[0];
-                    float v = w0b * uv0[1] + w1b * uv1[1] + w2b * uv2[1];
-                    argb = texture.getImage().sampleARGB(u, v);
+                    float u = (a0 * u0w + a1 * u1w + a2 * u2w) / invW;
+                    float v = (a0 * v0w + a1 * v1w + a2 * v2w) / invW;
+                    int tex = texture.getImage().sampleARGB(u, v, wrapS, wrapT, filter);
+                    frag = applyTextureBlend(blend, tex, defaultColor);
                 }
-                color.data[di] = argb | 0xFF000000;
+                color.data[di] = frag;
             }
         }
+    }
+
+    /** JSR-184 texture functions (REPLACE / MODULATE / DECAL / BLEND / ADD). */
+    private static int applyTextureBlend(int func, int tex, int frag) {
+        int ta = (tex >>> 24) & 0xFF, tr = (tex >>> 16) & 0xFF, tg = (tex >>> 8) & 0xFF, tb = tex & 0xFF;
+        int fa = (frag >>> 24) & 0xFF, fr = (frag >>> 16) & 0xFF, fg = (frag >>> 8) & 0xFF, fb = frag & 0xFF;
+        int oa = fa, or, og, ob;
+        switch (func) {
+            case Texture2D.FUNC_MODULATE:
+                or = (tr * fr) / 255;
+                og = (tg * fg) / 255;
+                ob = (tb * fb) / 255;
+                oa = (ta * fa) / 255;
+                break;
+            case Texture2D.FUNC_DECAL:
+                or = (tr * ta + fr * (255 - ta)) / 255;
+                og = (tg * ta + fg * (255 - ta)) / 255;
+                ob = (tb * ta + fb * (255 - ta)) / 255;
+                break;
+            case Texture2D.FUNC_BLEND:
+                or = (tr * fr + (255 - ta) * fr) / 255; // approx with blend color=frag
+                og = (tg * fg + (255 - ta) * fg) / 255;
+                ob = (tb * fb + (255 - ta) * fb) / 255;
+                break;
+            case Texture2D.FUNC_ADD:
+                or = Math.min(255, tr + fr);
+                og = Math.min(255, tg + fg);
+                ob = Math.min(255, tb + fb);
+                oa = Math.min(255, ta + fa);
+                break;
+            case Texture2D.FUNC_REPLACE:
+            default:
+                or = tr;
+                og = tg;
+                ob = tb;
+                oa = ta == 0 ? 255 : ta;
+                break;
+        }
+        // LCD path is opaque ARGB; keep coverage visible.
+        if (oa < 16) {
+            oa = 255;
+        }
+        return (oa << 24) | (or << 16) | (og << 8) | ob;
     }
 
     private static float edge(float ax, float ay, float bx, float by, float cx, float cy) {

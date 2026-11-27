@@ -149,6 +149,16 @@ public class Connector {
         }
 
         public String getHeaderField(String name) {
+            if (name == null) {
+                return null;
+            }
+            String key = name.toLowerCase();
+            if ("content-length".equals(key)) {
+                return "3";
+            }
+            if ("content-type".equals(key)) {
+                return "text/plain";
+            }
             return null;
         }
 
@@ -177,7 +187,8 @@ public class Connector {
         }
 
         public long getLength() {
-            return 0;
+            // Tiny body so callers that spin on available()/Content-Length exit.
+            return 3;
         }
 
         public DataInputStream openDataInputStream() {
@@ -185,7 +196,9 @@ public class Connector {
         }
 
         public InputStream openInputStream() {
-            return new FakeInputStream();
+            // Non-empty so available()>0 at least once; avoids busy-waits that
+            // treat available()==0 as "still downloading".
+            return new java.io.ByteArrayInputStream(new byte[] { 'O', 'K', '\n' });
         }
 
         public DataOutputStream openDataOutputStream() {

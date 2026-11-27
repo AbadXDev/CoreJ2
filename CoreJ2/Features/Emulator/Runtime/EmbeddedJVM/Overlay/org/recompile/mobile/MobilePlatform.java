@@ -118,26 +118,73 @@ public class MobilePlatform {
         System.out.flush();
         final javax.microedition.lcdui.Displayable current = Mobile.getDisplay().getCurrent();
         if (current != null) {
+            // Only store coords here. Diamond Rush (and similar) hit-tests inside
+            // paint() using the last pointer position — that paint runs on release
+            // before pointerReleased so the MIDlet sees a valid Index.
             current.pointerPressed(x, y);
-            // Diamond Rush (and similar menus) compute the hit index inside paint()
-            // after storing pointer coords — force a synchronous paint now.
-            if (current instanceof javax.microedition.lcdui.Canvas) {
-                ((javax.microedition.lcdui.Canvas) current).repaint();
-            }
         }
     }
+
+    private final Object pointerReleaseLock = new Object();
+    private Thread pointerReleaseThread;
+    private int pendingReleaseX;
+    private int pendingReleaseY;
+    private boolean pendingRelease;
+    private javax.microedition.lcdui.Displayable pendingReleaseTarget;
 
     public void pointerReleased(int x, int y) {
         System.out.println("corej2-input: pointerReleased " + x + "," + y);
         System.out.flush();
         final javax.microedition.lcdui.Displayable current = Mobile.getDisplay().getCurrent();
-        if (current != null) {
-            // Ensure any paint-side hit test from pointerPressed has run before
-            // the MIDlet reads the selected index on release.
-            if (current instanceof javax.microedition.lcdui.Canvas) {
-                ((javax.microedition.lcdui.Canvas) current).repaint();
+        if (current == null) {
+            return;
+        }
+        // Hit-test paint must run before the MIDlet sees the release (Diamond Rush).
+        if (current instanceof javax.microedition.lcdui.Canvas) {
+            ((javax.microedition.lcdui.Canvas) current).repaint();
+        }
+        // Locale/asset work inside MIDlet pointerReleased can take seconds on Zero
+        // and was starving the JNI input thread. Serialize on one worker and keep
+        // only the latest pending release so rapid taps don't interleave.
+        synchronized (pointerReleaseLock) {
+            pendingReleaseX = x;
+            pendingReleaseY = y;
+            pendingReleaseTarget = current;
+            pendingRelease = true;
+            if (pointerReleaseThread == null || !pointerReleaseThread.isAlive()) {
+                pointerReleaseThread = new Thread(new Runnable() {
+                    public void run() {
+                        for (;;) {
+                            int rx;
+                            int ry;
+                            javax.microedition.lcdui.Displayable target;
+                            synchronized (pointerReleaseLock) {
+                                if (!pendingRelease) {
+                                    pointerReleaseThread = null;
+                                    return;
+                                }
+                                rx = pendingReleaseX;
+                                ry = pendingReleaseY;
+                                target = pendingReleaseTarget;
+                                pendingRelease = false;
+                            }
+                            try {
+                                System.out.println("corej2-input: pointerReleased-worker begin");
+                                System.out.flush();
+                                target.pointerReleased(rx, ry);
+                                System.out.println("corej2-input: pointerReleased-worker end");
+                                System.out.flush();
+                            } catch (Throwable t) {
+                                System.out.println("corej2-input: pointerReleased-worker " + t);
+                                t.printStackTrace();
+                                System.out.flush();
+                            }
+                        }
+                    }
+                }, "corej2-pointer-release");
+                pointerReleaseThread.setDaemon(true);
+                pointerReleaseThread.start();
             }
-            current.pointerReleased(x, y);
         }
     }
 

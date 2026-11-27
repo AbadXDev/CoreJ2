@@ -88,18 +88,43 @@ public class Graphics3D {
         if (colorBuffer == null) {
             return;
         }
+        boolean clearColor = true;
+        boolean clearDepth = true;
         int color = 0xFF000000;
+        Image2D bgImage = null;
         if (background != null) {
             try {
+                clearColor = background.isColorClearEnabled();
+                clearDepth = background.isDepthClearEnabled();
                 color = 0xFF000000 | (background.getColor() & 0x00FFFFFF);
+                bgImage = background.getImage();
             } catch (Throwable ignored) {
             }
         }
         int[] data = colorBuffer.data;
-        for (int i = 0; i < data.length; i++) {
-            data[i] = color;
+        if (clearColor) {
+            for (int i = 0; i < data.length; i++) {
+                data[i] = color;
+            }
         }
-        if (depth != null) {
+        // Optional background image (stretch to viewport) — avoids a pure-black clear
+        // when the title supplies a sky/backdrop Image2D.
+        if (bgImage != null && vieww > 0 && viewh > 0) {
+            for (int y = 0; y < viewh; y++) {
+                float v = (y + 0.5f) / viewh;
+                for (int x = 0; x < vieww; x++) {
+                    float u = (x + 0.5f) / vieww;
+                    int px = viewx + x;
+                    int py = viewy + y;
+                    if (px < 0 || py < 0 || px >= colorBuffer.width || py >= colorBuffer.height) {
+                        continue;
+                    }
+                    data[py * colorBuffer.width + px] =
+                        bgImage.sampleARGB(u, v) | 0xFF000000;
+                }
+            }
+        }
+        if (depth != null && clearDepth) {
             for (int i = 0; i < depth.length; i++) {
                 depth[i] = Float.MAX_VALUE;
             }
@@ -205,23 +230,60 @@ public class Graphics3D {
             colorBuffer, depth, viewx, viewy, vieww, viewh);
         meshVBFrames++;
         if (meshVBFrames <= 3 || (meshVBFrames % 120) == 0) {
-            int nz = 0;
-            int[] px = colorBuffer.data;
-            for (int i = 0; i < px.length; i++) {
-                if ((px[i] & 0x00FFFFFF) != 0) {
-                    nz++;
-                }
-            }
             System.out.println(
                 "corej2-m3g: render MeshVB#" + meshVBFrames
                     + " dTris=" + (renderer.trianglesDrawn() - trisBefore)
                     + " totalTris=" + renderer.trianglesDrawn()
-                    + " nz=" + nz
+                    + " " + frameStats(colorBuffer)
                     + " cam=" + (camera == null ? "null" : "ok")
+                    + " tex0=" + (appearance != null && appearance.getTexture(0) != null
+                        ? appearance.getTexture(0).getImage() != null
+                        : false)
             );
             System.out.flush();
         }
         flushToPlatform();
+    }
+
+    /**
+     * Frame evidence: non-zero RGB count + channel means + variance (not just nz).
+     * High variance with non-trivial means ⇒ real textured colour, not flat black/white.
+     */
+    public static String frameStats(IntArgbImage buf) {
+        if (buf == null || buf.data == null || buf.data.length == 0) {
+            return "nz=0 var=0";
+        }
+        int[] px = buf.data;
+        long n = px.length;
+        long nz = 0;
+        long sumR = 0, sumG = 0, sumB = 0;
+        for (int i = 0; i < px.length; i++) {
+            int c = px[i];
+            int r = (c >>> 16) & 0xFF;
+            int g = (c >>> 8) & 0xFF;
+            int b = c & 0xFF;
+            if ((c & 0x00FFFFFF) != 0) {
+                nz++;
+            }
+            sumR += r;
+            sumG += g;
+            sumB += b;
+        }
+        double meanR = sumR / (double) n;
+        double meanG = sumG / (double) n;
+        double meanB = sumB / (double) n;
+        double var = 0;
+        for (int i = 0; i < px.length; i++) {
+            int c = px[i];
+            double dr = ((c >>> 16) & 0xFF) - meanR;
+            double dg = ((c >>> 8) & 0xFF) - meanG;
+            double db = (c & 0xFF) - meanB;
+            var += dr * dr + dg * dg + db * db;
+        }
+        var /= (n * 3.0);
+        return "nz=" + nz
+            + " meanRGB=" + (int) meanR + "/" + (int) meanG + "/" + (int) meanB
+            + " var=" + (int) var;
     }
 
     public void render(World world) {

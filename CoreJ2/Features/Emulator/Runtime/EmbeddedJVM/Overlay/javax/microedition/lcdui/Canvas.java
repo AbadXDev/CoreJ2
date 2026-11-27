@@ -42,22 +42,45 @@ public abstract class Canvas extends Displayable {
 
     protected abstract void paint(Graphics g);
 
+    /** Guards against re-entrant paint deadlocks; queues one follow-up frame. */
+    private boolean painting;
+    private boolean pendingRepaint;
+
     public void repaint() {
         repaint(0, 0, width, height);
     }
 
     public void repaint(int x, int y, int w, int h) {
+        if (painting) {
+            pendingRepaint = true;
+            System.out.println("corej2-lcdui: Canvas.repaint queued (reentrant)");
+            System.out.flush();
+            return;
+        }
+        painting = true;
+        long t0 = System.currentTimeMillis();
         try {
-            PlatformGraphics g = platformImage.getGraphics();
-            g.reset();
-            paint(g);
-            Display display = Mobile.getDisplay();
-            if (display != null && display.getCurrent() == this) {
-                Mobile.getPlatform().repaint(platformImage, x, y, w, h);
-            }
-        } catch (Exception e) {
-            System.out.println("corej2-lcdui: Canvas.repaint " + e.getMessage());
+            do {
+                pendingRepaint = false;
+                System.out.println("corej2-lcdui: Canvas.paint begin");
+                System.out.flush();
+                PlatformGraphics g = platformImage.getGraphics();
+                g.reset();
+                paint(g);
+                Display display = Mobile.getDisplay();
+                if (display != null && display.getCurrent() == this) {
+                    Mobile.getPlatform().repaint(platformImage, x, y, w, h);
+                }
+                long dt = System.currentTimeMillis() - t0;
+                System.out.println("corej2-lcdui: Canvas.paint end " + dt + "ms");
+                System.out.flush();
+            } while (pendingRepaint);
+        } catch (Throwable e) {
+            System.out.println("corej2-lcdui: Canvas.repaint " + e);
             e.printStackTrace();
+            System.out.flush();
+        } finally {
+            painting = false;
         }
     }
 

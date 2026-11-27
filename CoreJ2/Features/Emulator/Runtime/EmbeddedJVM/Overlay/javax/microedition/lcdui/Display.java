@@ -118,6 +118,11 @@ public class Display {
     }
 
     public void setCurrent(Displayable next) {
+        System.out.println(
+            "corej2-lcdui: setCurrent "
+                + (next == null ? "null" : next.getClass().getName())
+        );
+        System.out.flush();
         if (next == null) {
             return;
         }
