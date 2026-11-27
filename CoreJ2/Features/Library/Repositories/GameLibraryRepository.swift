@@ -1,0 +1,20 @@
+import Foundation
+
+/// Provides access to games stored in the user's library.
+@MainActor
+protocol GameLibraryRepository {
+    /// Returns all games currently in the library.
+    func fetchGames() -> [InstalledGame]
+
+    /// Stores an installed game in the library.
+    func save(_ game: InstalledGame)
+
+    /// Returns the installed game with the given content hash, if one exists.
+    func game(withContentHash contentHash: String) -> InstalledGame?
+
+    /// Returns every installed game sharing `contentHash` (for dedupe cleanup).
+    func games(withContentHash contentHash: String) -> [InstalledGame]
+
+    /// Removes the library record for `game` (does not delete files).
+    func delete(_ game: InstalledGame)
+}

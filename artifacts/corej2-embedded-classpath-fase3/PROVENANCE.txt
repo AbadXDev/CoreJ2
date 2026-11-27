@@ -1,0 +1,9 @@
+CoreJ2 FASE-3 pure classpath
+classes=280
+sources:
+  - org.objectweb.asm (ObjectWeb ASM, BSD; tree under Vendor/FreeJ2ME/src for convenience)
+  - CoreJ2 Overlay (clean-room MIDP/MMAPI/M3G/Nokia + platform bridges)
+  - CoreJ2 Bootstrap (LcdSupport, RunJarSupport, …)
+excluded:
+  - Vendor/FreeJ2ME javax/** org/recompile/freej2me/** org/recompile/mobile/** (Vendor copies)
+  - OEM stubs not referenced by matrix (bluetooth, PIM, sensor, mascotcapsule, …)

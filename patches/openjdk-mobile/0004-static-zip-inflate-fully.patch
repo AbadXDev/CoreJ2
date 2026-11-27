@@ -1,0 +1,43 @@
+diff --git a/src/java.base/share/native/libjimage/imageDecompressor.cpp b/src/java.base/share/native/libjimage/imageDecompressor.cpp
+index 65bda0957b8..04ede34e754 100644
+--- a/src/java.base/share/native/libjimage/imageDecompressor.cpp
++++ b/src/java.base/share/native/libjimage/imageDecompressor.cpp
+@@ -33,6 +33,7 @@
+ #include "jvm.h"
+ #include "imageDecompressor.hpp"
+ #include "endian.hpp"
++#include <stdio.h>
+ #ifdef WIN32
+ #include <windows.h>
+ #else
+@@ -69,6 +70,10 @@ static void* findEntry(const char* name) {
+ #endif
+ }
+ 
++// Declared in libzip (zip_util.c). Hard reference for static iOS link.
++extern "C" jboolean ZIP_InflateFully(void *inBuf, jlong inLen, void *outBuf,
++                                     jlong outLen, char **pmsg);
++
+ /*
+  * Initialize the array of decompressors.
+  */
+@@ -76,8 +81,17 @@ int ImageDecompressor::_decompressors_num = 0;
+ ImageDecompressor** ImageDecompressor::_decompressors = NULL;
+ void ImageDecompressor::image_decompressor_init() {
+     if (_decompressors == NULL) {
+-        ZipInflateFully = (ZipInflateFully_t) findEntry("ZIP_InflateFully");
+-     assert(ZipInflateFully != NULL && "ZIP decompressor not found.");
++        // Prefer a direct static reference so dead-strip / RTLD_FIRST on iOS
++        // cannot leave ZipInflateFully null (PRODUCT builds skip assert).
++        ZipInflateFully = (ZipInflateFully_t)&ZIP_InflateFully;
++        if (ZipInflateFully == NULL) {
++            ZipInflateFully = (ZipInflateFully_t) findEntry("ZIP_InflateFully");
++        }
++        if (ZipInflateFully == NULL) {
++            fprintf(stderr, "corej2-jvm: ZIP_InflateFully unresolved (force-load libzip)\n");
++            fflush(stderr);
++        }
++        assert(ZipInflateFully != NULL && "ZIP decompressor not found.");
+         _decompressors_num = 2;
+         _decompressors = new ImageDecompressor*[_decompressors_num];
+         _decompressors[0] = new ZipDecompressor("zip");

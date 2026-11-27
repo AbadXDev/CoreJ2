@@ -1,0 +1,141 @@
+site_name: CoreJ2
+site_description: Run classic Java ME (J2ME) games natively on iPhone & iPad
+site_author: CoreJ2
+site_url: https://flakito-loko.github.io/CoreJ2/
+
+repo_name: flakito-loko/CoreJ2
+repo_url: https://github.com/flakito-loko/CoreJ2
+edit_uri: edit/main/docs/
+
+copyright: >
+  Copyright &copy; CoreJ2 contributors ·
+  <a href="https://github.com/flakito-loko/CoreJ2">GitHub</a> ·
+  <a href="https://flakito-loko.github.io/CoreJ2/">Documentation</a> ·
+  <a href="https://flakito-loko.github.io/CoreJ2/roadmap/">Roadmap</a> ·
+  <a href="https://flakito-loko.github.io/CoreJ2/compatibility/">Compatibility</a>
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  font:
+    text: Inter
+    code: Roboto Mono
+  logo: assets/branding/isotype.svg
+  favicon: assets/branding/favicon.svg
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - toc.follow
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - tags
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+validation:
+  omitted_files: info
+  absolute_links: info
+  unrecognized_links: info
+  anchors: info
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/flakito-loko/CoreJ2
+      name: GitHub
+    - icon: fontawesome/solid/book
+      link: https://flakito-loko.github.io/CoreJ2/
+      name: Documentation
+    - icon: fontawesome/solid/gamepad
+      link: https://flakito-loko.github.io/CoreJ2/compatibility/
+      name: Compatibility
+    - icon: fontawesome/solid/map
+      link: https://flakito-loko.github.io/CoreJ2/roadmap/
+      name: Roadmap
+
+nav:
+  - Home: index.md
+  - Why CoreJ2?: why-corej2.md
+  - Getting Started: getting-started.md
+  - Building: building.md
+  - Compatibility:
+      - Overview: compatibility.md
+      - Statistics: compatibility-stats.md
+      - Alea: compatibility/games/Alea.md
+      - Astroids: compatibility/games/Astroids.md
+      - Tetris: compatibility/games/Tetris.md
+      - Gryzzles: compatibility/games/Gryzzles.md
+      - Ubertris: compatibility/games/Ubertris.md
+  - Architecture: architecture.md
+  - Milestones: milestones.md
+  - Roadmap: roadmap.md
+  - Performance: performance.md
+  - FAQ: faq.md
+  - Screenshots: screenshots/index.md
+  - Branding: branding.md
+  - Technical Reports: technical-reports.md
+  - Releases:
+      - v0.9.0-alpha: releases/v0.9.0-alpha.md

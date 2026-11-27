@@ -1,0 +1,43 @@
+diff --git a/src/hotspot/share/runtime/os.cpp b/src/hotspot/share/runtime/os.cpp
+index 5018939a713..81ec7fbf23c 100644
+--- a/src/hotspot/share/runtime/os.cpp
++++ b/src/hotspot/share/runtime/os.cpp
+@@ -34,6 +34,7 @@
+ #include "gc/shared/oopStorageSet.hpp"
+ #include "interpreter/interpreter.hpp"
+ #include "jvm.h"
++#include <stdio.h>
+ #include "logging/log.hpp"
+ #include "logging/logStream.hpp"
+ #include "memory/allocation.inline.hpp"
+@@ -1505,14 +1506,26 @@ bool os::set_boot_path(char fileSep, char pathSep) {
+   struct stat st;
+ 
+   // modular image if "modules" jimage exists
+-#ifndef __IOS__
++  //
++  // On iOS OpenJDK Mobile forces java.home=$HOME/Documents. The historical
++  // "%/Documents/lib/modules" format therefore resolved to
++  // $HOME/Documents/Documents/lib/modules (double Documents). Prefer the
++  // canonical "%/lib/modules" used by every other platform; fall back to the
++  // nested path for older on-device layouts.
+   char* jimage = format_boot_path("%/lib/" MODULES_IMAGE_NAME, home, home_len, fileSep, pathSep);
+-#else
+-  char* jimage = format_boot_path("%/Documents/lib/" MODULES_IMAGE_NAME, home, home_len, fileSep, pathSep);
+-#endif
+   if (jimage == nullptr) return false;
+   bool has_jimage = (os::stat(jimage, &st) == 0);
++#ifdef __IOS__
++  if (!has_jimage) {
++    FREE_C_HEAP_ARRAY(char, jimage);
++    jimage = format_boot_path("%/Documents/lib/" MODULES_IMAGE_NAME, home, home_len, fileSep, pathSep);
++    if (jimage == nullptr) return false;
++    has_jimage = (os::stat(jimage, &st) == 0);
++  }
++#endif
+   if (has_jimage) {
++    fprintf(stderr, "corej2-jvm: set_boot_path modules=%s\n", jimage);
++    fflush(stderr);
+     Arguments::set_boot_class_path(jimage, true);
+     FREE_C_HEAP_ARRAY(char, jimage);
+     return true;

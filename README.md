@@ -1,0 +1,238 @@
+# CoreJ2
+
+**Run classic Java ME (J2ME) games natively on iPhone & iPad.**
+
+Embedded OpenJDK Mobile · FreeJ2ME · SwiftUI · Open Source
+
+<p align="center">
+  <img src="docs/assets/gifs/miami-nights.gif" alt="Miami Nights gameplay on CoreJ2" width="360" />
+</p>
+
+<p align="center">
+  <em>Miami Nights: Singles in the City — gameplay on a physical iPhone</em>
+</p>
+
+<p align="center">
+  <a href="https://flakito-loko.github.io/CoreJ2/"><img src="https://img.shields.io/badge/status-Alpha-orange?style=for-the-badge" alt="Alpha" /></a>
+  <a href="https://github.com/flakito-loko/CoreJ2/releases"><img src="https://img.shields.io/badge/version-0.9.0--alpha-blue?style=for-the-badge" alt="Version" /></a>
+  <a href="https://github.com/flakito-loko/CoreJ2"><img src="https://img.shields.io/badge/license-See%20repo-lightgrey?style=for-the-badge" alt="License" /></a>
+  <a href="https://github.com/flakito-loko/CoreJ2/actions/workflows/docs.yml"><img src="https://img.shields.io/github/actions/workflow/status/flakito-loko/CoreJ2/docs.yml?branch=main&style=for-the-badge&label=Docs" alt="Docs CI" /></a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift" />
+  <img src="https://img.shields.io/badge/iOS-Device-000000?logo=apple&logoColor=white" alt="iOS" />
+  <img src="https://img.shields.io/badge/OpenJDK-Mobile-2563EB?logo=openjdk&logoColor=white" alt="OpenJDK" />
+  <img src="https://img.shields.io/badge/FreeJ2ME-Embedded-60A5FA" alt="FreeJ2ME" />
+  <a href="https://flakito-loko.github.io/CoreJ2/"><img src="https://img.shields.io/badge/Documentation-Online-2563EB" alt="Documentation" /></a>
+</p>
+
+<p align="center">
+  <a href="https://flakito-loko.github.io/CoreJ2/">Documentation</a> ·
+  <a href="https://flakito-loko.github.io/CoreJ2/compatibility/">Compatibility</a> ·
+  <a href="https://flakito-loko.github.io/CoreJ2/architecture/">Architecture</a> ·
+  <a href="https://flakito-loko.github.io/CoreJ2/roadmap/">Roadmap</a> ·
+  <a href="https://github.com/flakito-loko/CoreJ2">Source</a>
+</p>
+
+---
+
+## Current Status
+
+| Feature | Status |
+|---------|--------|
+| Embedded OpenJDK Mobile | ✅ |
+| FreeJ2ME Runtime | ✅ |
+| Commercial MIDlets | ✅ |
+| LCD Rendering | ✅ |
+| Touch Input | ✅ |
+| Virtual Keypad | ✅ |
+| Save / Load (RMS) | ✅ |
+| Multiple Launch Cycles | ✅ |
+| Gameplay | ✅ |
+| Silent Audio Compatibility | ✅ |
+| Native Audio Playback | 🚧 In Progress |
+| Compatibility Expansion | 🚧 In Progress |
+
+---
+
+## Reference Game
+
+### Miami Nights: Singles in the City
+
+Validated on:
+
+- Physical iPhone
+- Embedded OpenJDK Mobile
+- FreeJ2ME
+- SwiftUI frontend
+
+**Current validation**
+
+| Check | Result |
+|-------|--------|
+| Launch | ✓ |
+| Menus | ✓ |
+| Gameplay | ✓ |
+| Save | ✓ |
+| Load | ✓ |
+| Dialogs | ✓ |
+| Stable gameplay | ✓ |
+| No crashes during manual play session | ✓ |
+
+**Remaining work**
+
+- Native MMAPI audio backend
+- Compatibility expansion
+
+<p align="center">
+  <img src="docs/assets/screenshots/miami-nights-gameplay.PNG" alt="Miami Nights gameplay with virtual keypad" width="280" />
+  &nbsp;
+  <img src="docs/assets/screenshots/miami-nights-menu.PNG" alt="Miami Nights menu on CoreJ2" width="280" />
+</p>
+
+<p align="center">
+  <em>Gameplay and menu — Miami Nights on device</em>
+</p>
+
+---
+
+## Showcase
+
+| Preview | Caption |
+|:-------:|---------|
+| <img src="docs/assets/gifs/miami-nights.gif" alt="Miami Nights GIF" width="220" /> | **Miami Nights** — commercial title, playable session on physical iPhone |
+| <img src="docs/assets/gifs/tetris.gif" alt="Tetris GIF" width="220" /> | **Tetris** — LCD rendering and virtual keypad |
+| <img src="docs/assets/gifs/astroids.gif" alt="Astroids GIF" width="220" /> | **Astroids** — touch + keypad input path |
+
+| Screenshot | Caption |
+|:----------:|---------|
+| <img src="docs/assets/screenshots/library.PNG" alt="CoreJ2 library" width="200" /> | **Library** — SwiftUI game list and import |
+| <img src="docs/assets/screenshots/tetris.PNG" alt="Tetris on CoreJ2" width="200" /> | **Tetris** — FreeJ2ME LCD surface |
+| <img src="docs/assets/screenshots/astroids.PNG" alt="Astroids on CoreJ2" width="200" /> | **Astroids** — device capture |
+| <img src="docs/assets/screenshots/gryzzles.PNG" alt="Gryzzles on CoreJ2" width="200" /> | **Gryzzles** — RMS / save path validation |
+
+More captures: [Screenshots](https://flakito-loko.github.io/CoreJ2/screenshots/)
+
+---
+
+## Gameplay Videos
+
+Full device recordings (MP4):
+
+| Title | Video |
+|-------|-------|
+| Miami Nights | [miami-nights.MP4](docs/assets/videos/miami-nights.MP4) |
+| Tetris | [tetris.mp4](docs/assets/videos/tetris.mp4) |
+| Astroids | [astroids.MP4](docs/assets/videos/astroids.MP4) |
+
+HTML5 playback is available on the [documentation site](https://flakito-loko.github.io/CoreJ2/).
+
+---
+
+## Architecture
+
+```text
+SwiftUI
+  ↓
+Bridge
+  ↓
+Runtime Host
+  ↓
+Embedded OpenJDK Mobile
+  ↓
+FreeJ2ME
+  ↓
+Commercial MIDlet
+```
+
+Details: [Architecture](https://flakito-loko.github.io/CoreJ2/architecture/)
+
+---
+
+## Roadmap
+
+### Completed Milestones
+
+- Embedded JVM (OpenJDK Mobile Zero)
+- FreeJ2ME Integration
+- AWT
+- ImageIO
+- JPEG
+- FontManager
+- RMS
+- Commercial MIDlets
+- Miami Nights gameplay
+
+### Current Work
+
+- Native MMAPI Audio
+- Compatibility Database
+
+### Future Work
+
+- Controller support
+- Per-game settings
+- Save States
+- Performance optimization
+- Shader pipeline
+
+Full plan: [Roadmap](https://flakito-loko.github.io/CoreJ2/roadmap/)
+
+---
+
+## Documentation
+
+| Guide | Description |
+|-------|-------------|
+| [Getting Started](https://flakito-loko.github.io/CoreJ2/getting-started/) | Install and launch a MIDlet |
+| [Why CoreJ2?](https://flakito-loko.github.io/CoreJ2/why-corej2/) | Vision and technical rationale |
+| [Architecture](https://flakito-loko.github.io/CoreJ2/architecture/) | Layer ownership |
+| [Compatibility](https://flakito-loko.github.io/CoreJ2/compatibility/) | Device-validated matrix |
+| [Roadmap](https://flakito-loko.github.io/CoreJ2/roadmap/) | Milestones and next steps |
+| [FAQ](https://flakito-loko.github.io/CoreJ2/faq/) | Common questions |
+
+```bash
+python3 -m venv .venv-docs && source .venv-docs/bin/activate
+pip install -r requirements-docs.txt
+mkdocs serve
+```
+
+---
+
+## Brand
+
+Official assets: [`assets/branding/`](assets/branding/) · [Guidelines](assets/branding/branding-guidelines.md)
+
+Palette: `#2563EB` · `#60A5FA` · `#0B1220` · `#FFFFFF` · `#94A3B8`
+
+---
+
+## Status
+
+🚧 **Alpha · v0.9.0-alpha** — commercial J2ME titles run on physical iPhone with embedded OpenJDK Mobile. Native audio playback and broader compatibility are in progress.
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md).
+
+---
+
+## License
+
+Application licensing: see repository terms when published.  
+Vendor FreeJ2ME: **GPL-3.0** (`Vendor/FreeJ2ME`).  
+Brand assets: original CoreJ2 identity (see branding guidelines).
+
+---
+
+<p align="center">
+  <a href="https://github.com/flakito-loko/CoreJ2">GitHub</a> ·
+  <a href="https://flakito-loko.github.io/CoreJ2/">Documentation</a> ·
+  <a href="https://flakito-loko.github.io/CoreJ2/roadmap/">Roadmap</a> ·
+  <a href="https://flakito-loko.github.io/CoreJ2/compatibility/">Compatibility</a>
+</p>
+
+<p align="center">Copyright © CoreJ2 contributors</p>

@@ -1,0 +1,24 @@
+diff --git a/src/hotspot/os/posix/os_posix.cpp b/src/hotspot/os/posix/os_posix.cpp
+index 18ba7a81cc8..1b2236d28e4 100644
+--- a/src/hotspot/os/posix/os_posix.cpp
++++ b/src/hotspot/os/posix/os_posix.cpp
+@@ -794,10 +794,19 @@ bool os::has_allocatable_memory_limit(size_t* limit) {
+ 
+ void* os::get_default_process_handle() {
+ #ifdef __APPLE__
++#ifdef __IOS__
++  // iOS app binaries split the thin launch stub (CoreJ2) from the real
++  // image (CoreJ2.debug.dylib) that contains HotSpot / libzip / libjimage.
++  // RTLD_FIRST only searches the stub, so dlsym misses every static symbol
++  // and ZipInflateFully stays null → (*ZipInflateFully) jumps to PC=0
++  // (CODESIGNING Invalid Page). RTLD_DEFAULT searches all loaded images.
++  return RTLD_DEFAULT;
++#else
+   // MacOS X needs to use RTLD_FIRST instead of RTLD_LAZY
+   // to avoid finding unexpected symbols on second (or later)
+   // loads of a library.
+   return (void*)::dlopen(nullptr, RTLD_FIRST);
++#endif
+ #else
+   return (void*)::dlopen(nullptr, RTLD_LAZY);
+ #endif

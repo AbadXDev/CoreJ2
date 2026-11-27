@@ -1,0 +1,39 @@
+import SwiftData
+import SwiftUI
+
+@main
+struct CoreJ2App: App {
+
+    // MARK: - Dependencies
+
+    private let modelContainer: ModelContainer
+    @StateObject private var libraryViewModel: LibraryViewModel
+    @StateObject private var settings = AppSettings.shared
+
+    // MARK: - Init
+
+    init() {
+        let container: ModelContainer
+
+        do {
+            container = try ModelContainer(for: InstalledGameEntity.self)
+        } catch {
+            fatalError("Failed to create the SwiftData model container: \(error)")
+        }
+
+        modelContainer = container
+        let dependencies = AppDependencyContainer(modelContainer: container)
+        _libraryViewModel = StateObject(wrappedValue: dependencies.makeLibraryViewModel())
+    }
+
+    // MARK: - Body
+
+    var body: some Scene {
+        WindowGroup {
+            LibraryView(viewModel: libraryViewModel)
+                .preferredColorScheme(settings.appearance.colorScheme)
+                .environmentObject(settings)
+        }
+        .modelContainer(modelContainer)
+    }
+}

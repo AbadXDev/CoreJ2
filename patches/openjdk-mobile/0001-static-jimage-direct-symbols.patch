@@ -1,0 +1,104 @@
+diff --git a/src/hotspot/share/classfile/classLoader.cpp b/src/hotspot/share/classfile/classLoader.cpp
+index 3ca1ec237e8..388c86bd7be 100644
+--- a/src/hotspot/share/classfile/classLoader.cpp
++++ b/src/hotspot/share/classfile/classLoader.cpp
+@@ -81,8 +81,13 @@
+ #include "utilities/ostream.hpp"
+ #include "utilities/utf8.hpp"
+ 
+-#include <stdlib.h>
+ #include <ctype.h>
++#include <stdio.h>
++#include <stdlib.h>
++
++// Declared in java.base native libjava (canonicalize_md.c). Used for a hard
++// static reference when the VM is statically linked into the iOS app.
++extern "C" int JDK_Canonicalize(const char *orig, char *out, int len);
+ 
+ // Entry point in java.dll for path canonicalization
+ 
+@@ -826,8 +831,17 @@ void* ClassLoader::dll_lookup(void* lib, const char* name, const char* path) {
+ void ClassLoader::load_java_library() {
+   assert(CanonicalizeEntry == nullptr, "should not load java library twice");
+   if (is_vm_statically_linked()) {
+-    CanonicalizeEntry = CAST_TO_FN_PTR(canonicalize_fn_t, os::lookup_function("JDK_Canonicalize"));
+-    assert(CanonicalizeEntry != nullptr, "could not lookup JDK_Canonicalize");
++    CanonicalizeEntry = (canonicalize_fn_t)&JDK_Canonicalize;
++    if (CanonicalizeEntry == nullptr) {
++      CanonicalizeEntry = CAST_TO_FN_PTR(canonicalize_fn_t, os::lookup_function("JDK_Canonicalize"));
++    }
++    if (CanonicalizeEntry == nullptr) {
++      fprintf(stderr, "corej2-jvm: load_java_library FAILED JDK_Canonicalize=null\n");
++      fflush(stderr);
++      vm_exit_during_initialization(
++          "Unable to resolve JDK_Canonicalize (force-load libjava.a / static link)",
++          nullptr);
++    }
+     return;
+   }
+ 
+@@ -844,13 +858,40 @@ void ClassLoader::load_jimage_library() {
+   assert(JImageOpen == nullptr, "should not load jimage library twice");
+ 
+   if (is_vm_statically_linked()) {
+-      JImageOpen = CAST_TO_FN_PTR(JImageOpen_t, os::lookup_function("JIMAGE_Open"));
+-      JImageClose = CAST_TO_FN_PTR(JImageClose_t, os::lookup_function("JIMAGE_Close"));
+-      JImageFindResource = CAST_TO_FN_PTR(JImageFindResource_t, os::lookup_function("JIMAGE_FindResource"));
+-      JImageGetResource = CAST_TO_FN_PTR(JImageGetResource_t, os::lookup_function("JIMAGE_GetResource"));
+-      assert(JImageOpen != nullptr && JImageClose != nullptr &&
+-            JImageFindResource != nullptr && JImageGetResource != nullptr,
+-            "could not lookup all jimage library functions");
++      // Prefer direct static references so the linker cannot dead-strip the
++      // jimage entry points. Fallback to dlsym for hosts that still export them.
++      JImageOpen = (JImageOpen_t)&JIMAGE_Open;
++      JImageClose = (JImageClose_t)&JIMAGE_Close;
++      JImageFindResource = (JImageFindResource_t)&JIMAGE_FindResource;
++      JImageGetResource = (JImageGetResource_t)&JIMAGE_GetResource;
++      if (JImageOpen == nullptr) {
++        JImageOpen = CAST_TO_FN_PTR(JImageOpen_t, os::lookup_function("JIMAGE_Open"));
++      }
++      if (JImageClose == nullptr) {
++        JImageClose = CAST_TO_FN_PTR(JImageClose_t, os::lookup_function("JIMAGE_Close"));
++      }
++      if (JImageFindResource == nullptr) {
++        JImageFindResource = CAST_TO_FN_PTR(JImageFindResource_t, os::lookup_function("JIMAGE_FindResource"));
++      }
++      if (JImageGetResource == nullptr) {
++        JImageGetResource = CAST_TO_FN_PTR(JImageGetResource_t, os::lookup_function("JIMAGE_GetResource"));
++      }
++      // PRODUCT builds disable assert(); a null fnptr becomes PC=0 / CODESIGNING.
++      if (JImageOpen == nullptr || JImageClose == nullptr ||
++          JImageFindResource == nullptr || JImageGetResource == nullptr) {
++        fprintf(stderr,
++                "corej2-jvm: load_jimage_library FAILED open=%p close=%p find=%p get=%p\n",
++                (void*)JImageOpen, (void*)JImageClose,
++                (void*)JImageFindResource, (void*)JImageGetResource);
++        fflush(stderr);
++        vm_exit_during_initialization(
++            "Unable to resolve JIMAGE_* (force-load libjimage.a / static link)",
++            nullptr);
++      }
++      fprintf(stderr,
++              "corej2-jvm: load_jimage_library OK open=%p\n",
++              (void*)JImageOpen);
++      fflush(stderr);
+       return;
+     }
+ 
+@@ -1382,8 +1423,16 @@ char* ClassLoader::lookup_vm_options() {
+   load_jimage_library();
+ 
+   jio_snprintf(modules_path, JVM_MAXPATHLEN, "%s%slib%smodules", Arguments::get_java_home(), fileSep, fileSep);
++  fprintf(stderr,
++          "corej2-jvm: lookup_vm_options path=%s JImageOpen=%p\n",
++          modules_path, (void*)JImageOpen);
++  fflush(stderr);
+   JImage_file =(*JImageOpen)(modules_path, &error);
+   if (JImage_file == nullptr) {
++    fprintf(stderr,
++            "corej2-jvm: JIMAGE_Open returned null error=%d path=%s\n",
++            (int)error, modules_path);
++    fflush(stderr);
+     return nullptr;
+   }
+ 
