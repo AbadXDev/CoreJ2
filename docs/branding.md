@@ -1,6 +1,6 @@
 # Branding
 
-CoreJ2 visual identity — original mark (phone + LCD + diamond core + keypad). Not affiliated with Oracle Java branding.
+CoreJ2 visual identity — original mark (pixel candybar phone + glowing C2 LCD + keypad). Not affiliated with Oracle Java branding.
 
 > Originally developed as **CoreJ2**.
 

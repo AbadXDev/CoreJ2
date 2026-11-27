@@ -2,11 +2,9 @@
 
 Official visual identity for CoreJ2. Assets live in `assets/branding/`.
 
-> Originally developed as **CoreJ2**. Public branding is now **CoreJ2**.
-
 ## Brand summary
 
-CoreJ2 is an **embedded Java ME emulator for iPhone & iPad**. The mark combines a minimal phone silhouette, an LCD panel, a geometric diamond (embedded core), and retro keypad dots — original artwork, **not** derived from Oracle Java / coffee-cup marks.
+CoreJ2 is an **embedded Java ME emulator for iPhone & iPad**. The mark is a pixel-art candybar phone with a glowing "C2" LCD and a numeric keypad — original artwork, **not** derived from Oracle Java / coffee-cup marks. The master artwork is `corej2-appicon-1024.png`; the SVGs embed a downscaled copy of it.
 
 ## Logo files
 
@@ -69,7 +67,7 @@ Below minimum size, use the isotype alone (drop the wordmark).
 
 ## Logo usage — Don’t
 
-- Don’t recolor the diamond/LCD into Oracle Java orange/red.
+- Don’t recolor the mark into Oracle Java orange/red.
 - Don’t add gradients, shadows, or 3D bevels to the official SVGs.
 - Don’t place the logo on busy photography without a scrim.
 - Don’t rotate or skew the mark.

@@ -92,23 +92,6 @@ CoreJ2 ships **no games**. You load your own `.jar` files.
 
 ---
 
-## Showcase
-
-| Preview | Caption |
-|:-------:|---------|
-| <img src="docs/assets/gifs/miami-nights.gif" alt="Miami Nights GIF" width="220" /> | **Miami Nights** — commercial title, playable session on physical iPhone |
-| <img src="docs/assets/gifs/tetris.gif" alt="Tetris GIF" width="220" /> | **Tetris** — LCD rendering and virtual keypad |
-| <img src="docs/assets/gifs/astroids.gif" alt="Astroids GIF" width="220" /> | **Astroids** — touch + keypad input path |
-
-| Screenshot | Caption |
-|:----------:|---------|
-| <img src="docs/assets/screenshots/library.PNG" alt="CoreJ2 library" width="200" /> | **Library** — SwiftUI game list and import |
-| <img src="docs/assets/screenshots/tetris.PNG" alt="Tetris on CoreJ2" width="200" /> | **Tetris** — CoreJ2 LCD surface |
-| <img src="docs/assets/screenshots/astroids.PNG" alt="Astroids on CoreJ2" width="200" /> | **Astroids** — device capture |
-| <img src="docs/assets/screenshots/gryzzles.PNG" alt="Gryzzles on CoreJ2" width="200" /> | **Gryzzles** — RMS / save path validation |
-
----
-
 ## Architecture
 
 ```text
