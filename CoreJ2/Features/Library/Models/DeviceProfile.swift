@@ -37,6 +37,12 @@ struct DeviceProfile: Identifiable, Equatable, Hashable, Sendable {
         guard lcdHeight > 0 else { return 1 }
         return Double(lcdWidth) / Double(lcdHeight)
     }
+
+    /// `true` when the native LCD is wider than tall (e.g. 640×360 touch).
+    /// Emulator UI locks landscape and puts controls on the sides.
+    var prefersLandscapeLayout: Bool {
+        lcdWidth > lcdHeight
+    }
 }
 
 // MARK: - Catalog

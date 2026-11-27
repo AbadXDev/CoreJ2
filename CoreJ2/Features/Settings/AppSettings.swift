@@ -32,10 +32,39 @@ final class AppSettings: ObservableObject {
         }
     }
 
+    /// On-screen D-pad presentation preferred by the user.
+    enum DPadStyle: String, CaseIterable, Identifiable {
+        /// Virtual stick: drag freely, 8 directions from angle.
+        case joystick
+        /// Continuous cross with diagonals while sliding.
+        case sliding
+        /// Four discrete buttons (classic keypad).
+        case classic
+
+        var id: String { rawValue }
+
+        var title: String {
+            switch self {
+            case .joystick: return "Palanca"
+            case .sliding: return "Cruceta deslizable"
+            case .classic: return "Cruceta clásica"
+            }
+        }
+
+        var detail: String {
+            switch self {
+            case .joystick: return "Joystick virtual en cualquier dirección"
+            case .sliding: return "Deslizar entre direcciones y diagonales"
+            case .classic: return "Botones individuales (como antes)"
+            }
+        }
+    }
+
     private enum Keys {
         static let numericKeypadVisible = "corej2.settings.numericKeypadVisible"
         static let vibrationEnabled = "corej2.settings.vibrationEnabled"
         static let appearance = "corej2.settings.appearance"
+        static let dpadStyle = "corej2.settings.dpadStyle"
         static let deletedHashes = "corej2.settings.deletedContentHashes"
     }
 
@@ -51,6 +80,10 @@ final class AppSettings: ObservableObject {
         didSet { UserDefaults.standard.set(appearance.rawValue, forKey: Keys.appearance) }
     }
 
+    @Published var dpadStyle: DPadStyle {
+        didSet { UserDefaults.standard.set(dpadStyle.rawValue, forKey: Keys.dpadStyle) }
+    }
+
     private init() {
         let defaults = UserDefaults.standard
         numericKeypadVisibleByDefault = defaults.object(forKey: Keys.numericKeypadVisible) as? Bool ?? false
@@ -59,6 +92,11 @@ final class AppSettings: ObservableObject {
             appearance = value
         } else {
             appearance = .system
+        }
+        if let raw = defaults.string(forKey: Keys.dpadStyle), let value = DPadStyle(rawValue: raw) {
+            dpadStyle = value
+        } else {
+            dpadStyle = .sliding
         }
     }
 

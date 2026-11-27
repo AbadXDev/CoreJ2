@@ -2,9 +2,8 @@ import SwiftUI
 
 /// Owns the visual LCD surface that displays FreeJ2ME frames plus on-screen controls.
 ///
-/// On appear, starts observing `runtimeEvents` and launches `game` through the
-/// bridge. On disappear, stops the session. Renders via `CGImage` (no Metal).
-/// Controls sit below the LCD so thumbs do not cover the framebuffer.
+/// Portrait games keep LCD above controls. Landscape profiles (LCD wider than
+/// tall, e.g. 640×360) lock landscape and place controls on the left/right.
 struct EmulatorView: View {
 
     // MARK: - Dependencies
@@ -20,19 +19,18 @@ struct EmulatorView: View {
         self.game = game
     }
 
+    private var prefersLandscape: Bool {
+        game.deviceProfile.prefersLandscapeLayout
+    }
+
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 0) {
-            lcdSurface
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            if viewModel.activeSession != nil {
-                EmulatorKeypadView(
-                    onKeyDown: { viewModel.keyDown($0) },
-                    onKeyUp: { viewModel.keyUp($0) },
-                    onKeyRepeat: { viewModel.keyRepeat($0) }
-                )
+        Group {
+            if prefersLandscape {
+                landscapeBody
+            } else {
+                portraitBody
             }
         }
         .navigationTitle(game.title)
@@ -48,15 +46,17 @@ struct EmulatorView: View {
             Text(viewModel.launchErrorMessage ?? "")
         }
         .task(id: game.id) {
-            print("corej2-launch: EmulatorView.task start \(game.title) id=\(game.id)")
+            print("corej2-launch: EmulatorView.task start \(game.title) id=\(game.id) landscape=\(prefersLandscape)")
+            if prefersLandscape {
+                AppOrientationLock.lock(.landscape)
+            } else {
+                AppOrientationLock.lock(.portrait)
+            }
             await viewModel.startSession(for: game)
             print("corej2-launch: EmulatorView.task finished \(game.title) error=\(viewModel.launchErrorMessage ?? "nil")")
         }
         .onDisappear {
-            // Explicit back already calls dismissEmulator → endSession via the
-            // navigation binding. Only stop here if a session is actually running
-            // so SwiftUI destination churn during a second push cannot cancel an
-            // in-flight launch (isLaunching, activeSession == nil) silently.
+            AppOrientationLock.lock(.all)
             if viewModel.activeSession != nil {
                 print("corej2-launch: EmulatorView.onDisappear → endSession")
                 viewModel.endSession()
@@ -64,6 +64,53 @@ struct EmulatorView: View {
                 print("corej2-launch: EmulatorView.onDisappear ignored (no active session)")
             }
         }
+    }
+
+    // MARK: - Portrait
+
+    private var portraitBody: some View {
+        VStack(spacing: 0) {
+            lcdSurface
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            if viewModel.activeSession != nil {
+                EmulatorKeypadView(
+                    onKeyDown: { viewModel.keyDown($0) },
+                    onKeyUp: { viewModel.keyUp($0) },
+                    onKeyRepeat: { viewModel.keyRepeat($0) }
+                )
+            }
+        }
+    }
+
+    // MARK: - Landscape
+
+    private var landscapeBody: some View {
+        HStack(spacing: 0) {
+            if viewModel.activeSession != nil {
+                EmulatorKeypadView(
+                    onKeyDown: { viewModel.keyDown($0) },
+                    onKeyUp: { viewModel.keyUp($0) },
+                    onKeyRepeat: { viewModel.keyRepeat($0) },
+                    landscapeSide: .left
+                )
+                .frame(width: 156)
+            }
+
+            lcdSurface
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            if viewModel.activeSession != nil {
+                EmulatorKeypadView(
+                    onKeyDown: { viewModel.keyDown($0) },
+                    onKeyUp: { viewModel.keyUp($0) },
+                    onKeyRepeat: { viewModel.keyRepeat($0) },
+                    landscapeSide: .right
+                )
+                .frame(width: 156)
+            }
+        }
+        .ignoresSafeArea(edges: .bottom)
     }
 
     // MARK: - Surface
@@ -83,8 +130,8 @@ struct EmulatorView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .padding(.horizontal)
-        .padding(.top, 8)
+        .padding(.horizontal, prefersLandscape ? 4 : 16)
+        .padding(.top, prefersLandscape ? 4 : 8)
         .background(Color(uiColor: .systemBackground))
     }
 
@@ -190,45 +237,3 @@ struct EmulatorView: View {
         )
     }
 }
-
-#if DEBUG
-#Preview {
-    NavigationStack {
-        EmulatorView(
-            viewModel: EmulatorViewModel(bridge: PreviewEmulatorBridge()),
-            game: InstalledGame(
-                id: UUID(),
-                title: "Demo",
-                jarURL: URL(fileURLWithPath: "/tmp/demo.jar"),
-                importedAt: Date(),
-                contentHash: "abc"
-            )
-        )
-    }
-}
-
-@MainActor
-private final class PreviewEmulatorBridge: EmulatorBridgeProtocol {
-    private let pipe = RuntimeEventPipe()
-
-    var runtimeEvents: AsyncStream<RuntimeEvent> {
-        pipe.events
-    }
-
-    func launch(_ configuration: LaunchConfiguration) async throws -> EmulatorSession {
-        EmulatorSession(configuration: configuration, state: .running)
-    }
-
-    func pause(_ session: EmulatorSession) throws {
-        session.transition(to: .paused)
-    }
-
-    func resume(_ session: EmulatorSession) throws {
-        session.transition(to: .running)
-    }
-
-    func stop(_ session: EmulatorSession) async throws {
-        session.transition(to: .stopped)
-    }
-}
-#endif

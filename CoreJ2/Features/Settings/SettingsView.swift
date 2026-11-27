@@ -62,8 +62,18 @@ struct SettingsView: View {
     }
 
     private var controlsSection: some View {
-        Section("Controles") {
+        Section {
+            Picker("Estilo de cruceta", selection: $settings.dpadStyle) {
+                ForEach(AppSettings.DPadStyle.allCases) { style in
+                    Text(style.title).tag(style)
+                }
+            }
+            Text(settings.dpadStyle.detail)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
             Toggle("Teclado numérico visible", isOn: $settings.numericKeypadVisibleByDefault)
+        } header: {
+            Text("Controles")
         }
     }
 

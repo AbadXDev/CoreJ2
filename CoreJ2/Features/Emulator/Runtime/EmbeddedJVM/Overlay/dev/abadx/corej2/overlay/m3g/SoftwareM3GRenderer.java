@@ -221,14 +221,101 @@ public final class SoftwareM3GRenderer {
                     i1 = i2;
                     i2 = t;
                 }
-                drawTriangle(
-                    eye, i0, i1, i2, uvs, uvScaleBias, texXform, texture, colors, defaultColor,
-                    compositing, polygonMode, color, depth, vx, vy, vw, vh
+                float[] uv0 = new float[2];
+                float[] uv1 = new float[2];
+                float[] uv2 = new float[2];
+                sampleUV(uvs, uvScaleBias, texXform, i0, uv0);
+                sampleUV(uvs, uvScaleBias, texXform, i1, uv1);
+                sampleUV(uvs, uvScaleBias, texXform, i2, uv2);
+                int c0 = vertexColor(colors, i0, defaultColor);
+                int c1 = vertexColor(colors, i1, defaultColor);
+                int c2 = vertexColor(colors, i2, defaultColor);
+                drawTriangleTessellated(
+                    eye[i0 * 4], eye[i0 * 4 + 1], eye[i0 * 4 + 2], eye[i0 * 4 + 3], uv0[0], uv0[1], c0,
+                    eye[i1 * 4], eye[i1 * 4 + 1], eye[i1 * 4 + 2], eye[i1 * 4 + 3], uv1[0], uv1[1], c1,
+                    eye[i2 * 4], eye[i2 * 4 + 1], eye[i2 * 4 + 2], eye[i2 * 4 + 3], uv2[0], uv2[1], c2,
+                    texture, compositing, polygonMode, color, depth, vx, vy, vw, vh, 0
                 );
-                trianglesDrawn++;
             }
             cursor += len;
         }
+    }
+
+    /**
+     * Subdivide tris whose UV span is large (Asphalt road tiling) so perspective
+     * correction stays stable, then rasterize the leaves.
+     */
+    private void drawTriangleTessellated(
+            float x0, float y0, float z0, float w0, float u0, float v0, int c0,
+            float x1, float y1, float z1, float w1, float u1, float v1, int c1,
+            float x2, float y2, float z2, float w2, float u2, float v2, int c2,
+            Texture2D texture,
+            CompositingMode compositing,
+            PolygonMode polygonMode,
+            IntArgbImage color,
+            float[] depthBuf,
+            int vx, int vy, int vw, int vh,
+            int depth
+    ) {
+        float du01 = Math.abs(u1 - u0) + Math.abs(v1 - v0);
+        float du12 = Math.abs(u2 - u1) + Math.abs(v2 - v1);
+        float du20 = Math.abs(u0 - u2) + Math.abs(v0 - v2);
+        float longest = Math.max(du01, Math.max(du12, du20));
+        // Approximate on-screen size from NDC; tiny projected tris don't need
+        // deep UV splits (costly and invisible).
+        float ndcSize = 0f;
+        if (w0 != 0 && w1 != 0 && w2 != 0) {
+            float ax = x0 / w0, ay = y0 / w0;
+            float bx = x1 / w1, by = y1 / w1;
+            float cx = x2 / w2, cy = y2 / w2;
+            ndcSize = Math.abs(ax - bx) + Math.abs(ay - by)
+                + Math.abs(bx - cx) + Math.abs(by - cy)
+                + Math.abs(cx - ax) + Math.abs(cy - ay);
+        }
+        // Binary-split long UV edges on large screen tris so each leaf's
+        // (attr/w) stays well-conditioned under perspective correction.
+        if (longest > 1.0f && depth < 7 && ndcSize > 0.15f) {
+            int d = depth + 1;
+            if (du01 >= du12 && du01 >= du20) {
+                float xm = 0.5f * (x0 + x1), ym = 0.5f * (y0 + y1), zm = 0.5f * (z0 + z1), wm = 0.5f * (w0 + w1);
+                float um = 0.5f * (u0 + u1), vm = 0.5f * (v0 + v1);
+                int cm = lerpColor2(c0, c1);
+                drawTriangleTessellated(x0, y0, z0, w0, u0, v0, c0, xm, ym, zm, wm, um, vm, cm, x2, y2, z2, w2, u2, v2, c2,
+                    texture, compositing, polygonMode, color, depthBuf, vx, vy, vw, vh, d);
+                drawTriangleTessellated(xm, ym, zm, wm, um, vm, cm, x1, y1, z1, w1, u1, v1, c1, x2, y2, z2, w2, u2, v2, c2,
+                    texture, compositing, polygonMode, color, depthBuf, vx, vy, vw, vh, d);
+            } else if (du12 >= du20) {
+                float xm = 0.5f * (x1 + x2), ym = 0.5f * (y1 + y2), zm = 0.5f * (z1 + z2), wm = 0.5f * (w1 + w2);
+                float um = 0.5f * (u1 + u2), vm = 0.5f * (v1 + v2);
+                int cm = lerpColor2(c1, c2);
+                drawTriangleTessellated(x0, y0, z0, w0, u0, v0, c0, x1, y1, z1, w1, u1, v1, c1, xm, ym, zm, wm, um, vm, cm,
+                    texture, compositing, polygonMode, color, depthBuf, vx, vy, vw, vh, d);
+                drawTriangleTessellated(x0, y0, z0, w0, u0, v0, c0, xm, ym, zm, wm, um, vm, cm, x2, y2, z2, w2, u2, v2, c2,
+                    texture, compositing, polygonMode, color, depthBuf, vx, vy, vw, vh, d);
+            } else {
+                float xm = 0.5f * (x2 + x0), ym = 0.5f * (y2 + y0), zm = 0.5f * (z2 + z0), wm = 0.5f * (w2 + w0);
+                float um = 0.5f * (u2 + u0), vm = 0.5f * (v2 + v0);
+                int cm = lerpColor2(c2, c0);
+                drawTriangleTessellated(x0, y0, z0, w0, u0, v0, c0, x1, y1, z1, w1, u1, v1, c1, xm, ym, zm, wm, um, vm, cm,
+                    texture, compositing, polygonMode, color, depthBuf, vx, vy, vw, vh, d);
+                drawTriangleTessellated(xm, ym, zm, wm, um, vm, cm, x1, y1, z1, w1, u1, v1, c1, x2, y2, z2, w2, u2, v2, c2,
+                    texture, compositing, polygonMode, color, depthBuf, vx, vy, vw, vh, d);
+            }
+            return;
+        }
+        drawTriangleClip(
+            x0, y0, z0, w0, u0, v0, c0,
+            x1, y1, z1, w1, u1, v1, c1,
+            x2, y2, z2, w2, u2, v2, c2,
+            texture, compositing, polygonMode, color, depthBuf, vx, vy, vw, vh
+        );
+        trianglesDrawn++;
+    }
+
+    private static int lerpColor2(int a, int b) {
+        int ar = (a >>> 16) & 0xFF, ag = (a >>> 8) & 0xFF, ab = a & 0xFF, aa = (a >>> 24) & 0xFF;
+        int br = (b >>> 16) & 0xFF, bg = (b >>> 8) & 0xFF, bb = b & 0xFF, ba = (b >>> 24) & 0xFF;
+        return (((aa + ba) / 2) << 24) | (((ar + br) / 2) << 16) | (((ag + bg) / 2) << 8) | ((ab + bb) / 2);
     }
 
     private void dumpTextureOnce(Texture2D texture) {
@@ -285,17 +372,15 @@ public final class SoftwareM3GRenderer {
         }
     }
 
-    private void drawTriangle(
-            float[] eye,
-            int i0,
-            int i1,
-            int i2,
-            VertexArray uvs,
-            float[] uvScaleBias,
-            Transform texXform,
+    /**
+     * Rasterize one triangle from clip-space verts (already UV-sampled).
+     * Tessellation above keeps UV span small so perspective /w stays stable.
+     */
+    private void drawTriangleClip(
+            float cx0, float cy0, float cz0, float clipW0, float uu0, float vv0, int c0,
+            float cx1, float cy1, float cz1, float clipW1, float uu1, float vv1, int c1,
+            float cx2, float cy2, float cz2, float clipW2, float uu2, float vv2, int c2,
             Texture2D texture,
-            VertexArray colors,
-            int defaultColor,
             CompositingMode compositing,
             PolygonMode polygonMode,
             IntArgbImage color,
@@ -305,18 +390,16 @@ public final class SoftwareM3GRenderer {
             int vw,
             int vh
     ) {
-        float clipW0 = eye[i0 * 4 + 3];
-        float clipW1 = eye[i1 * 4 + 3];
-        float clipW2 = eye[i2 * 4 + 3];
-        if (clipW0 <= 0 && clipW1 <= 0 && clipW2 <= 0) {
+        // Near-plane / W=0 straddling produces the classic radial UV streaks.
+        // Require all clip-W on the same side of a small positive epsilon; full
+        // clip-polygon against W=ε is left for a later pass when needed.
+        final float wEps = 1e-3f;
+        if (clipW0 <= wEps || clipW1 <= wEps || clipW2 <= wEps) {
             return;
         }
-        if (clipW0 == 0 || clipW1 == 0 || clipW2 == 0) {
-            return;
-        }
-        float x0 = eye[i0 * 4] / clipW0, y0 = eye[i0 * 4 + 1] / clipW0, z0 = eye[i0 * 4 + 2] / clipW0;
-        float x1 = eye[i1 * 4] / clipW1, y1 = eye[i1 * 4 + 1] / clipW1, z1 = eye[i1 * 4 + 2] / clipW1;
-        float x2 = eye[i2 * 4] / clipW2, y2 = eye[i2 * 4 + 1] / clipW2, z2 = eye[i2 * 4 + 2] / clipW2;
+        float x0 = cx0 / clipW0, y0 = cy0 / clipW0, z0 = cz0 / clipW0;
+        float x1 = cx1 / clipW1, y1 = cy1 / clipW1, z1 = cz1 / clipW1;
+        float x2 = cx2 / clipW2, y2 = cy2 / clipW2, z2 = cz2 / clipW2;
 
         // Back-face culling is intentionally not applied yet: Asphalt mixes
         // strip winding with a Y-flipped viewport, and aggressive NDC culling
@@ -342,39 +425,25 @@ public final class SoftwareM3GRenderer {
         if (Math.abs(area) < 1e-4f) {
             return;
         }
+        // Always perspective-correct UV when enabled. Affine fallback on high
+        // tiling (Asphalt roads, v≫1) produced the radial/horizontal streaks;
+        // float32 handles attr/w for spans ~100 after subtracting a common base.
         boolean perspectiveUV = polygonMode == null || polygonMode.isPerspectiveCorrectionEnabled();
 
-        float[] uv0 = new float[2];
-        float[] uv1 = new float[2];
-        float[] uv2 = new float[2];
-        sampleUV(uvs, uvScaleBias, texXform, i0, uv0);
-        sampleUV(uvs, uvScaleBias, texXform, i1, uv1);
-        sampleUV(uvs, uvScaleBias, texXform, i2, uv2);
-        // Long tiled Asphalt road tris often span dozens of UV repeats; naive
-        // attrib/w then becomes unstable. Fall back to affine for large spans.
-        float uvSpan = Math.abs(uv1[0] - uv0[0]) + Math.abs(uv2[0] - uv0[0])
-            + Math.abs(uv1[1] - uv0[1]) + Math.abs(uv2[1] - uv0[1]);
-        if (uvSpan > 2.5f) {
-            perspectiveUV = false;
-        }
-
-        int c0 = vertexColor(colors, i0, defaultColor);
-        int c1 = vertexColor(colors, i1, defaultColor);
-        int c2 = vertexColor(colors, i2, defaultColor);
+        float[] uv0 = new float[] { uu0, vv0 };
+        float[] uv1 = new float[] { uu1, vv1 };
+        float[] uv2 = new float[] { uu2, vv2 };
 
         // Perspective-correct attribs: interpolate (attr/w) then divide by (1/w).
-        // For heavily tiled UVs (Asphalt roads, v≫1), reduce the integer tile
-        // part per-vertex before interpolate so /w stays stable, then add it back
-        // via affine tile offset.
         float iw0 = 1f / clipW0, iw1 = 1f / clipW1, iw2 = 1f / clipW2;
         float z0w = z0 * iw0, z1w = z1 * iw1, z2w = z2 * iw2;
 
         float u0f = uv0[0], v0f = uv0[1];
         float u1f = uv1[0], v1f = uv1[1];
         float u2f = uv2[0], v2f = uv2[1];
-        // Keep UV differences moderate across a triangle (stable /w).
-        float uBase = u0f;
-        float vBase = v0f;
+        // Common integer-ish base keeps (u/w) magnitudes smaller.
+        float uBase = (float) Math.floor(Math.min(u0f, Math.min(u1f, u2f)));
+        float vBase = (float) Math.floor(Math.min(v0f, Math.min(v1f, v2f)));
         u0f -= uBase; u1f -= uBase; u2f -= uBase;
         v0f -= vBase; v1f -= vBase; v2f -= vBase;
         float u0w = u0f * iw0, v0w = v0f * iw0;
