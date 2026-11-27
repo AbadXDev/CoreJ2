@@ -120,6 +120,7 @@
 		A100008A300D09580044FD89 /* EmulatorSurfaceMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100008B300D09580044FD89 /* EmulatorSurfaceMetadata.swift */; };
 		A100008C300D09580044FD89 /* EmulatorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100008D300D09580044FD89 /* EmulatorViewModel.swift */; };
 		A100008E300D09580044FD89 /* EmulatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100008F300D09580044FD89 /* EmulatorView.swift */; };
+		B12F681BC1CA4534862D9F18 /* EmulatorLCDImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01135B8EE004D3991577D22 /* EmulatorLCDImageView.swift */; };
 		A10000F0300D09580044FD89 /* J2MEKeyCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000F1300D09580044FD89 /* J2MEKeyCode.swift */; };
 		A10000F2300D09580044FD89 /* EmulatorKeypadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000F3300D09580044FD89 /* EmulatorKeypadView.swift */; };
 		A10000F4300D09580044FD89 /* MMAAudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000F5300D09580044FD89 /* MMAAudioEngine.swift */; };
@@ -129,6 +130,7 @@
 		A1000106300D09580044FD89 /* MMAVibrationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000107300D09580044FD89 /* MMAVibrationEngine.swift */; };
 		A10000F6300D09580044FD89 /* TimGM6mb.sf2 in Resources */ = {isa = PBXBuildFile; fileRef = A10000F7300D09580044FD89 /* TimGM6mb.sf2 */; };
 		A1000090300D09580044FD89 /* EmulatorViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000091300D09580044FD89 /* EmulatorViewModelTests.swift */; };
+		4218F232AE73498DADD20BB6 /* EmulatorViewLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1887948E82144DC2BC266FF6 /* EmulatorViewLayoutTests.swift */; };
 		A1000094300D09580044FD89 /* EmulatorFrameCGImageConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000095300D09580044FD89 /* EmulatorFrameCGImageConverter.swift */; };
 		A1000096300D09580044FD89 /* LibraryViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000097300D09580044FD89 /* LibraryViewModelTests.swift */; };
 		A1000098300D09580044FD89 /* AppDependencyContainerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000099300D09580044FD89 /* AppDependencyContainerTests.swift */; };
@@ -274,6 +276,7 @@
 		A100008B300D09580044FD89 /* EmulatorSurfaceMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulatorSurfaceMetadata.swift; sourceTree = "<group>"; };
 		A100008D300D09580044FD89 /* EmulatorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulatorViewModel.swift; sourceTree = "<group>"; };
 		A100008F300D09580044FD89 /* EmulatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulatorView.swift; sourceTree = "<group>"; };
+		B01135B8EE004D3991577D22 /* EmulatorLCDImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulatorLCDImageView.swift; sourceTree = "<group>"; };
 		A10000F1300D09580044FD89 /* J2MEKeyCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = J2MEKeyCode.swift; sourceTree = "<group>"; };
 		A10000F3300D09580044FD89 /* EmulatorKeypadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulatorKeypadView.swift; sourceTree = "<group>"; };
 		A10000F5300D09580044FD89 /* MMAAudioEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMAAudioEngine.swift; sourceTree = "<group>"; };
@@ -283,6 +286,7 @@
 		A1000107300D09580044FD89 /* MMAVibrationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMAVibrationEngine.swift; sourceTree = "<group>"; };
 		A10000F7300D09580044FD89 /* TimGM6mb.sf2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = TimGM6mb.sf2; sourceTree = "<group>"; };
 		A1000091300D09580044FD89 /* EmulatorViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulatorViewModelTests.swift; sourceTree = "<group>"; };
+		1887948E82144DC2BC266FF6 /* EmulatorViewLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulatorViewLayoutTests.swift; sourceTree = "<group>"; };
 		A1000095300D09580044FD89 /* EmulatorFrameCGImageConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulatorFrameCGImageConverter.swift; sourceTree = "<group>"; };
 		A1000097300D09580044FD89 /* LibraryViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryViewModelTests.swift; sourceTree = "<group>"; };
 		A1000099300D09580044FD89 /* AppDependencyContainerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDependencyContainerTests.swift; sourceTree = "<group>"; };
@@ -421,6 +425,7 @@
 			isa = PBXGroup;
 			children = (
 				A100008F300D09580044FD89 /* EmulatorView.swift */,
+				B01135B8EE004D3991577D22 /* EmulatorLCDImageView.swift */,
 				A10000F3300D09580044FD89 /* EmulatorKeypadView.swift */,
 			);
 			path = Views;
@@ -634,6 +639,7 @@
 				A100005E300D09580044FD89 /* FreeJ2MERuntimeHostTests.swift */,
 				A1000065300D09580044FD89 /* RuntimeEventTests.swift */,
 				A1000091300D09580044FD89 /* EmulatorViewModelTests.swift */,
+				1887948E82144DC2BC266FF6 /* EmulatorViewLayoutTests.swift */,
 				A1000097300D09580044FD89 /* LibraryViewModelTests.swift */,
 				A1000099300D09580044FD89 /* AppDependencyContainerTests.swift */,
 				A100009D300D09580044FD89 /* PersistentRuntimePOCTests.swift */,
@@ -868,6 +874,7 @@
 				A100008A300D09580044FD89 /* EmulatorSurfaceMetadata.swift in Sources */,
 				A100008C300D09580044FD89 /* EmulatorViewModel.swift in Sources */,
 				A100008E300D09580044FD89 /* EmulatorView.swift in Sources */,
+				B12F681BC1CA4534862D9F18 /* EmulatorLCDImageView.swift in Sources */,
 				A10000F0300D09580044FD89 /* J2MEKeyCode.swift in Sources */,
 				A10000F2300D09580044FD89 /* EmulatorKeypadView.swift in Sources */,
 				A10000F4300D09580044FD89 /* MMAAudioEngine.swift in Sources */,
@@ -932,6 +939,7 @@
 				A100005D300D09580044FD89 /* FreeJ2MERuntimeHostTests.swift in Sources */,
 				A1000064300D09580044FD89 /* RuntimeEventTests.swift in Sources */,
 				A1000090300D09580044FD89 /* EmulatorViewModelTests.swift in Sources */,
+				4218F232AE73498DADD20BB6 /* EmulatorViewLayoutTests.swift in Sources */,
 				A1000096300D09580044FD89 /* LibraryViewModelTests.swift in Sources */,
 				A1000098300D09580044FD89 /* AppDependencyContainerTests.swift in Sources */,
 				A100009C300D09580044FD89 /* PersistentRuntimePOCTests.swift in Sources */,

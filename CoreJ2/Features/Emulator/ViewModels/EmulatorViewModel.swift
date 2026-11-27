@@ -1,6 +1,7 @@
 import Combine
 import CoreGraphics
 import Foundation
+import ImageIO
 
 /// Drives the emulator LCD surface screen.
 ///
@@ -274,6 +275,37 @@ final class EmulatorViewModel: ObservableObject {
         lcdImage = image
         receivedFrameCount += 1
         hasReceivedFrame = true
+        dumpLCDFrameIfNeeded(image, width: frame.width, height: frame.height)
+    }
+
+    /// Writes the first few LCD frames as PNG under Documents/lcd-dump when
+    /// `Documents/qa-lcd-dump` exists (viewport QA).
+    private func dumpLCDFrameIfNeeded(_ image: CGImage, width: Int, height: Int) {
+        // Keep a short trail of dumps for viewport QA (splash → menus).
+        guard receivedFrameCount <= 12 else { return }
+        guard let documents = FileManager.default.urls(
+            for: .documentDirectory,
+            in: .userDomainMask
+        ).first else {
+            return
+        }
+        let flag = documents.appendingPathComponent("qa-lcd-dump", isDirectory: false)
+        guard FileManager.default.fileExists(atPath: flag.path) else { return }
+        let dir = documents.appendingPathComponent("lcd-dump", isDirectory: true)
+        do {
+            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            let url = dir.appendingPathComponent(
+                "frame-\(receivedFrameCount)-\(width)x\(height).png",
+                isDirectory: false
+            )
+            let dest = CGImageDestinationCreateWithURL(url as CFURL, "public.png" as CFString, 1, nil)
+            guard let dest else { return }
+            CGImageDestinationAddImage(dest, image, nil)
+            CGImageDestinationFinalize(dest)
+            print("corej2-viewport: dumped LCD \(url.lastPathComponent)")
+        } catch {
+            print("corej2-viewport: LCD dump failed \(error)")
+        }
     }
 
     private func resetSurfaceState() {
