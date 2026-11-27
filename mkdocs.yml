@@ -138,4 +138,5 @@ nav:
   - Branding: branding.md
   - Technical Reports: technical-reports.md
   - Releases:
+      - v1.0: releases/v1.0.md
       - v0.9.0-alpha: releases/v0.9.0-alpha.md

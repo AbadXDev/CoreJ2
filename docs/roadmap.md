@@ -2,9 +2,9 @@
 
 ## Current version
 
-**v0.9.0-alpha** · 🚧 Alpha
+**v1.0**
 
-Commercial J2ME titles (including Miami Nights) run on physical iPhone with embedded OpenJDK Mobile. Native audio and broader compatibility are the active focus.
+Commercial J2ME titles (including Miami Nights) run on physical iPhone with embedded OpenJDK Mobile and a clean-room MIDP. Compatibility expansion and M3G polish are the active focus.
 
 ---
 

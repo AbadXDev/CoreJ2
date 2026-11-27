@@ -21,8 +21,8 @@ hide:
 <p class="corej2-hero__caption">Miami Nights: Singles in the City — gameplay on a physical iPhone</p>
 
 <p class="corej2-hero__badges" markdown="1">
-[![Alpha](https://img.shields.io/badge/status-Alpha-orange)](https://github.com/AbadXDev/CoreJ2)
-[![Version](https://img.shields.io/badge/version-0.9.0--alpha-blue)](https://github.com/AbadXDev/CoreJ2/releases)
+[![Stable](https://img.shields.io/badge/status-Stable-brightgreen)](https://github.com/AbadXDev/CoreJ2)
+[![Version](https://img.shields.io/badge/version-1.0-blue)](https://github.com/AbadXDev/CoreJ2/releases)
 [![Swift](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)](https://github.com/AbadXDev/CoreJ2)
 [![iOS](https://img.shields.io/badge/iOS-Device-000000?logo=apple&logoColor=white)](https://github.com/AbadXDev/CoreJ2)
 [![Docs](https://img.shields.io/badge/Docs-GitHub%20Pages-0A84FF)](https://abadxdev.github.io/CoreJ2/)
@@ -192,6 +192,6 @@ Device-validated titles live in the public [Compatibility](compatibility.md) mat
 
 <div class="corej2-footer-note" markdown="1">
 
-🚧 **Alpha · v0.9.0-alpha** · [GitHub](https://github.com/AbadXDev/CoreJ2) · [Roadmap](roadmap.md) · [Compatibility](compatibility.md)
+✅ **v1.0** · [GitHub](https://github.com/AbadXDev/CoreJ2) · [Roadmap](roadmap.md) · [Compatibility](compatibility.md)
 
 </div>

@@ -9,9 +9,9 @@ Embedded OpenJDK Mobile · Clean-room MIDP · SwiftUI · Free for personal use
 </p>
 
 <p align="center">
-  <a href="https://github.com/AbadXDev/CoreJ2/releases"><img src="https://img.shields.io/badge/version-0.9.0--alpha-blue?style=for-the-badge" alt="Version" /></a>
+  <a href="https://github.com/AbadXDev/CoreJ2/releases"><img src="https://img.shields.io/badge/version-1.0-blue?style=for-the-badge" alt="Version" /></a>
   <a href="https://github.com/AbadXDev/CoreJ2/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Personal%20use%20%C2%B7%20Attribution-2563EB?style=for-the-badge" alt="License" /></a>
-  <img src="https://img.shields.io/badge/status-Alpha-orange?style=for-the-badge" alt="Alpha" />
+  <img src="https://img.shields.io/badge/status-Stable-brightgreen?style=for-the-badge" alt="Stable" />
 </p>
 
 <p align="center">
@@ -180,9 +180,8 @@ Palette: `#2563EB` · `#60A5FA` · `#0B1220` · `#FFFFFF` · `#94A3B8`
 
 ## Status
 
-🚧 **Alpha · v0.9.0-alpha** — commercial J2ME titles run on physical iPhone with
-embedded OpenJDK Mobile and a clean-room MIDP. Broader compatibility is in
-progress.
+✅ **v1.0** — commercial J2ME titles run on physical iPhone with embedded
+OpenJDK Mobile and a clean-room MIDP. Broader compatibility is in progress.
 
 ---
 

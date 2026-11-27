@@ -4,19 +4,30 @@ All notable changes to CoreJ2, organized by epic.
 
 ## [Unreleased]
 
-### Branding
+## [1.0] — 2026-11-27
 
-- Rebrand project identity to **CoreJ2** (BRAND-US001)
-- Updated logos, banners, social preview, docs site, and app display name
-- Official CoreJ2 visual identity assets: isotype, logos, banner, social preview, splash, app icon concept
-- Brand guidelines and MkDocs/README integration (`assets/branding/`)
+### Runtime
 
-### Documentation
+- Embedded OpenJDK Mobile (Zero) statically linked; `JNI_CreateJavaVM` on device (linker dead-strip fix + reproducible OpenJDK patches in `patches/openjdk-mobile/`)
+- **Clean-room MIDP 2.0 / CLDC / MMAPI / M3G** written from the public specifications — the shipped classpath is pure (280 classes; **0 FreeJ2ME classes in the app**; `Vendor/FreeJ2ME` kept as reference only)
+- Pure-Java graphics (no AWT on iOS): framebuffer images, PNG/BMP decoding, bitmap fonts, software M3G renderer
+- In-process game switching (single VM, session swap) and frame pacing (skip unchanged frames)
 
-- Public documentation and website polish (DOCS-US002)
-- Why CoreJ2, milestones, performance, compatibility statistics
-- Screenshot and GIF placeholder layout
-- MkDocs Material branding for `AbadXDev/CoreJ2`
+### Compatibility
+
+- 10 titles device-validated on iPhone XS Max (iOS 18.7.1): Miami Nights (EN/ES), Gangstar 2, Bounce Tales, Real Football 2011, Prince of Persia, Assassin's Creed, Diamond Rush, Asphalt 3D (M3G), plus the vibration test MIDlet
+- Device profiles 96×65 – 480×800 with auto-detection (manifest, filename, brand hints)
+
+### App
+
+- On-screen controls (D-pad, soft keys, numeric keypad, touch pointer) with key repeat
+- Native audio (MIDI/WAV via AVAudio bridge), vibration via haptics
+- Settings (theme, keypad, vibration), per-game RMS savedata management, library dedupe + delete
+
+### Branding & license
+
+- New app icon (pixel candybar phone with glowing "C2" LCD); full rename to CoreJ2 (`dev.abadx.corej2`)
+- License: free for personal, non-commercial use; attribution required (see `LICENSE`)
 
 ## [0.9.0-alpha] — 2026-08-06
 

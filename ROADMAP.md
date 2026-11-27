@@ -4,12 +4,12 @@ Public roadmap for CoreJ2. Site mirror: [docs/roadmap.md](https://abadxdev.githu
 
 ## Current version
 
-**v0.9.0-alpha** (Alpha)
+**v1.0**
 
 ## Completed Milestones
 
 - Embedded JVM
-- FreeJ2ME Integration
+- Clean-room MIDP (replaces the FreeJ2ME runtime)
 - AWT · ImageIO · JPEG · FontManager
 - RMS
 - Commercial MIDlets
