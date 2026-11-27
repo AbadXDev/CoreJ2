@@ -45,6 +45,8 @@ public abstract class Canvas extends Displayable {
     /** Guards against re-entrant paint deadlocks; queues one follow-up frame. */
     private boolean painting;
     private boolean pendingRepaint;
+    /** Throttle hot-path paint logs (every-frame println heats the device). */
+    private int paintLogCounter;
 
     public void repaint() {
         repaint(0, 0, width, height);
@@ -53,17 +55,18 @@ public abstract class Canvas extends Displayable {
     public void repaint(int x, int y, int w, int h) {
         if (painting) {
             pendingRepaint = true;
-            System.out.println("corej2-lcdui: Canvas.repaint queued (reentrant)");
-            System.out.flush();
             return;
         }
         painting = true;
-        long t0 = System.currentTimeMillis();
         try {
+            // Cap follow-up paints: games that call repaint() from paint()
+            // (Prince / AC) used to spin here and cook the device.
+            final int maxPasses = 2;
+            int passes = 0;
             do {
                 pendingRepaint = false;
-                System.out.println("corej2-lcdui: Canvas.paint begin");
-                System.out.flush();
+                passes++;
+                long t0 = System.currentTimeMillis();
                 PlatformGraphics g = platformImage.getGraphics();
                 g.reset();
                 paint(g);
@@ -72,9 +75,15 @@ public abstract class Canvas extends Displayable {
                     Mobile.getPlatform().repaint(platformImage, x, y, w, h);
                 }
                 long dt = System.currentTimeMillis() - t0;
-                System.out.println("corej2-lcdui: Canvas.paint end " + dt + "ms");
-                System.out.flush();
-            } while (pendingRepaint);
+                paintLogCounter++;
+                if (dt >= 40 || (paintLogCounter % 60) == 1) {
+                    System.out.println("corej2-lcdui: Canvas.paint end " + dt + "ms");
+                    System.out.flush();
+                }
+            } while (pendingRepaint && passes < maxPasses);
+            if (pendingRepaint) {
+                pendingRepaint = false;
+            }
         } catch (Throwable e) {
             System.out.println("corej2-lcdui: Canvas.repaint " + e);
             e.printStackTrace();

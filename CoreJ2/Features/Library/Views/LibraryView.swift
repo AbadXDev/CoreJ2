@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import UniformTypeIdentifiers
 
 /// Displays the user's Java ME game library and launches the emulator.
@@ -190,19 +191,28 @@ struct LibraryView: View {
     }
 
     /// MIDlet icon extracted at import time, with a placeholder when unavailable.
+    ///
+    /// Uses `UIImage(contentsOfFile:)` instead of `AsyncImage`: local `file://`
+    /// URLs are unreliable with AsyncImage, and many MIDlet icons are palette PNGs.
     private func gameIcon(for game: InstalledGame) -> some View {
-        AsyncImage(url: game.artworkURL) { image in
-            image
-                .resizable()
-                .interpolation(.none)
-                .aspectRatio(contentMode: .fit)
-        } placeholder: {
-            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(Color.secondary.opacity(0.15))
-                .overlay {
-                    Image(systemName: "gamecontroller")
-                        .foregroundStyle(.secondary)
-                }
+        let path = game.artworkURL.path(percentEncoded: false)
+        let uiImage = FileManager.default.fileExists(atPath: path)
+            ? UIImage(contentsOfFile: path)
+            : nil
+        return Group {
+            if let uiImage {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .interpolation(.none)
+                    .aspectRatio(contentMode: .fit)
+            } else {
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(Color.secondary.opacity(0.15))
+                    .overlay {
+                        Image(systemName: "gamecontroller")
+                            .foregroundStyle(.secondary)
+                    }
+            }
         }
         .frame(width: 40, height: 40)
         .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))

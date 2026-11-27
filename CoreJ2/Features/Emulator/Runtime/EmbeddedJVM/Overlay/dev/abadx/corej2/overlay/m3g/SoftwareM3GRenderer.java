@@ -272,9 +272,9 @@ public final class SoftwareM3GRenderer {
                 + Math.abs(bx - cx) + Math.abs(by - cy)
                 + Math.abs(cx - ax) + Math.abs(cy - ay);
         }
-        // Binary-split long UV edges on large screen tris so each leaf's
-        // (attr/w) stays well-conditioned under perspective correction.
-        if (longest > 1.0f && depth < 7 && ndcSize > 0.15f) {
+        // Selective binary UV split: only large, high-tiling screen tris.
+        // Cap depth to keep Asphalt playable (heat / frame time).
+        if (longest > 2.0f && depth < 4 && ndcSize > 0.22f) {
             int d = depth + 1;
             if (du01 >= du12 && du01 >= du20) {
                 float xm = 0.5f * (x0 + x1), ym = 0.5f * (y0 + y1), zm = 0.5f * (z0 + z1), wm = 0.5f * (w0 + w1);
@@ -303,13 +303,110 @@ public final class SoftwareM3GRenderer {
             }
             return;
         }
-        drawTriangleClip(
+        emitNearClipped(
             x0, y0, z0, w0, u0, v0, c0,
             x1, y1, z1, w1, u1, v1, c1,
             x2, y2, z2, w2, u2, v2, c2,
             texture, compositing, polygonMode, color, depthBuf, vx, vy, vw, vh
         );
-        trianglesDrawn++;
+    }
+
+    /**
+     * Clip a triangle against the near plane {@code W = ε}. Produces 0–2
+     * triangles so foreground road tris that straddle W≈0 keep correct UVs
+     * instead of being dropped or streaking.
+     */
+    private void emitNearClipped(
+            float x0, float y0, float z0, float w0, float u0, float v0, int c0,
+            float x1, float y1, float z1, float w1, float u1, float v1, int c1,
+            float x2, float y2, float z2, float w2, float u2, float v2, int c2,
+            Texture2D texture,
+            CompositingMode compositing,
+            PolygonMode polygonMode,
+            IntArgbImage color,
+            float[] depthBuf,
+            int vx, int vy, int vw, int vh
+    ) {
+        final float eps = 1e-3f;
+        boolean in0 = w0 > eps;
+        boolean in1 = w1 > eps;
+        boolean in2 = w2 > eps;
+        int inside = (in0 ? 1 : 0) + (in1 ? 1 : 0) + (in2 ? 1 : 0);
+        if (inside == 0) {
+            return;
+        }
+        if (inside == 3) {
+            drawTriangleClip(
+                x0, y0, z0, w0, u0, v0, c0,
+                x1, y1, z1, w1, u1, v1, c1,
+                x2, y2, z2, w2, u2, v2, c2,
+                texture, compositing, polygonMode, color, depthBuf, vx, vy, vw, vh
+            );
+            trianglesDrawn++;
+            return;
+        }
+
+        float[] xs = new float[4];
+        float[] ys = new float[4];
+        float[] zs = new float[4];
+        float[] ws = new float[4];
+        float[] us = new float[4];
+        float[] vs = new float[4];
+        int[] cs = new int[4];
+        int n = 0;
+
+        float[] px = { x0, x1, x2 };
+        float[] py = { y0, y1, y2 };
+        float[] pz = { z0, z1, z2 };
+        float[] pw = { w0, w1, w2 };
+        float[] pu = { u0, u1, u2 };
+        float[] pv = { v0, v1, v2 };
+        int[] pc = { c0, c1, c2 };
+        boolean[] pin = { in0, in1, in2 };
+
+        for (int i = 0; i < 3; i++) {
+            int j = (i + 1) % 3;
+            if (pin[i]) {
+                xs[n] = px[i]; ys[n] = py[i]; zs[n] = pz[i]; ws[n] = pw[i];
+                us[n] = pu[i]; vs[n] = pv[i]; cs[n] = pc[i];
+                n++;
+            }
+            if (pin[i] != pin[j]) {
+                float t = (eps - pw[i]) / (pw[j] - pw[i]);
+                if (t < 0f) {
+                    t = 0f;
+                } else if (t > 1f) {
+                    t = 1f;
+                }
+                xs[n] = px[i] + t * (px[j] - px[i]);
+                ys[n] = py[i] + t * (py[j] - py[i]);
+                zs[n] = pz[i] + t * (pz[j] - pz[i]);
+                ws[n] = eps;
+                us[n] = pu[i] + t * (pu[j] - pu[i]);
+                vs[n] = pv[i] + t * (pv[j] - pv[i]);
+                cs[n] = lerpColor2(pc[i], pc[j]);
+                // Bias lerp toward the destination when t is closer to ends.
+                if (t > 0.5f) {
+                    cs[n] = lerpColor2(cs[n], pc[j]);
+                } else {
+                    cs[n] = lerpColor2(pc[i], cs[n]);
+                }
+                n++;
+            }
+        }
+        if (n < 3) {
+            return;
+        }
+        // Fan triangulation from vertex 0.
+        for (int i = 1; i + 1 < n; i++) {
+            drawTriangleClip(
+                xs[0], ys[0], zs[0], ws[0], us[0], vs[0], cs[0],
+                xs[i], ys[i], zs[i], ws[i], us[i], vs[i], cs[i],
+                xs[i + 1], ys[i + 1], zs[i + 1], ws[i + 1], us[i + 1], vs[i + 1], cs[i + 1],
+                texture, compositing, polygonMode, color, depthBuf, vx, vy, vw, vh
+            );
+            trianglesDrawn++;
+        }
     }
 
     private static int lerpColor2(int a, int b) {
@@ -390,9 +487,7 @@ public final class SoftwareM3GRenderer {
             int vw,
             int vh
     ) {
-        // Near-plane / W=0 straddling produces the classic radial UV streaks.
-        // Require all clip-W on the same side of a small positive epsilon; full
-        // clip-polygon against W=ε is left for a later pass when needed.
+        // Caller must near-clip; still guard against W≈0.
         final float wEps = 1e-3f;
         if (clipW0 <= wEps || clipW1 <= wEps || clipW2 <= wEps) {
             return;

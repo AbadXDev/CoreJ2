@@ -230,7 +230,10 @@ public class Graphics3D {
         renderer.renderMesh(vertices, triangles, appearance, transform, camera, cameraTransform,
             colorBuffer, depth, viewx, viewy, vieww, viewh);
         meshVBFrames++;
-        if (meshVBFrames <= 3 || (meshVBFrames % 120) == 0) {
+        // Do not flush per-mesh — Asphalt issues hundreds of MeshVB calls per
+        // frame; copying the LCD each time burns CPU and heats the device.
+        // releaseTarget / render(World) still flush once per frame.
+        if (meshVBFrames <= 3 || (meshVBFrames % 240) == 0) {
             System.out.println(
                 "corej2-m3g: render MeshVB#" + meshVBFrames
                     + " dTris=" + (renderer.trianglesDrawn() - trisBefore)
@@ -244,7 +247,6 @@ public class Graphics3D {
             System.out.flush();
             maybeDumpFrame();
         }
-        flushToPlatform();
     }
 
     private void maybeDumpFrame() {

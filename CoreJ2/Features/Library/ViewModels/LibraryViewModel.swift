@@ -61,6 +61,8 @@ final class LibraryViewModel: ObservableObject {
         importDocumentRootJARs()
         dedupeAndPruneLibrary()
         repairLegacyTinyProfiles()
+        repairFilenameResolutionProfiles()
+        backfillMissingArtwork()
         let fileManager = FileManager.default
         games = repository.fetchGames().filter { game in
             fileManager.fileExists(atPath: game.jarURL.path(percentEncoded: false))
@@ -78,6 +80,72 @@ final class LibraryViewModel: ObservableObject {
             Self.appendLaunchDiagnostic(
                 "repaired profile \(game.title) \(tinyID) → \(fixed.id)"
             )
+        }
+    }
+
+    /// Re-applies `WIDTHxHEIGHT` from the Documents JAR basename when the stored
+    /// profile resolution disagrees (e.g. Real Football / Diamond `240x400`).
+    private func repairFilenameResolutionProfiles() {
+        let fileManager = FileManager.default
+        guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            return
+        }
+        let jars = (try? fileManager.contentsOfDirectory(
+            at: documentsURL,
+            includingPropertiesForKeys: nil
+        )) ?? []
+        var hashToSize: [String: (Int, Int)] = [:]
+        for jar in jars where jar.pathExtension.lowercased() == "jar" {
+            guard let size = DeviceProfileDetector.detectResolution(in: jar.lastPathComponent),
+                  let hash = Self.sha256Hex(ofFileAt: jar) else {
+                continue
+            }
+            hashToSize[hash] = (size.width, size.height)
+        }
+        for game in repository.fetchGames() {
+            guard let expected = hashToSize[game.contentHash] else { continue }
+            let current = game.deviceProfile
+            if current.lcdWidth == expected.0, current.lcdHeight == expected.1 {
+                continue
+            }
+            guard let profile = DeviceProfile.profile(
+                lcdWidth: expected.0,
+                lcdHeight: expected.1,
+                brand: current.brand
+            ) ?? DeviceProfile.profile(lcdWidth: expected.0, lcdHeight: expected.1) else {
+                continue
+            }
+            repository.save(game.withDeviceProfile(profile))
+            Self.appendLaunchDiagnostic(
+                "repaired profile \(game.title) \(current.id) → \(profile.id)"
+            )
+        }
+    }
+
+    /// Extracts missing `artwork/icon.png` for games already in the library
+    /// (e.g. Diamond Rush JARs whose icon used a ZIP data descriptor).
+    private func backfillMissingArtwork() {
+        let fileManager = FileManager.default
+        for game in repository.fetchGames() {
+            let iconPath = game.artworkURL.path(percentEncoded: false)
+            if fileManager.fileExists(atPath: iconPath) {
+                continue
+            }
+            let jarPath = game.jarURL.path(percentEncoded: false)
+            guard fileManager.fileExists(atPath: jarPath) else { continue }
+            do {
+                if let url = try ArtworkStep.extractIcon(
+                    fromJARAt: game.jarURL,
+                    preferredPath: nil,
+                    fileManager: fileManager
+                ) {
+                    Self.appendLaunchDiagnostic(
+                        "artwork backfill \(game.title) → \(url.lastPathComponent)"
+                    )
+                }
+            } catch {
+                Self.appendLaunchDiagnostic("artwork backfill failed \(game.title)")
+            }
         }
     }
 
@@ -315,6 +383,9 @@ final class LibraryViewModel: ObservableObject {
     }
 
     private func presentEmulator(for game: InstalledGame) {
+        Self.appendLaunchDiagnostic(
+            "presentEmulator \(game.title) profile=\(game.deviceProfile.id) \(game.deviceProfile.resolutionLabel)"
+        )
         let nextVM = makeEmulatorViewModel()
         activeEmulatorViewModel = nextVM
         gameToLaunch = game

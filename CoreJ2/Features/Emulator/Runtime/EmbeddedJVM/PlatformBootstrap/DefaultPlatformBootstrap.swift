@@ -165,7 +165,8 @@ final class DefaultPlatformBootstrap: PlatformBootstrap, @unchecked Sendable {
     private var framesEmittedStorage = 0
     private var framesDroppedUnchangedStorage = 0
     private var framesDroppedPacedStorage = 0
-    private let minFrameIntervalMs: UInt64 = 33
+    /// Larger LCDs (640×360) emit more pixels — pace harder to cut heat.
+    private let minFrameIntervalMs: UInt64
 
     /// Receives one `FreeJ2MEFrameCapture` per painter invocation once set.
     /// Set before `initialize()`; invoked on the Java painter thread.
@@ -201,6 +202,15 @@ final class DefaultPlatformBootstrap: PlatformBootstrap, @unchecked Sendable {
         self.lcdWidth = lcdWidth
         self.lcdHeight = lcdHeight
         self.workQueue = workQueue
+        let pixels = Int(lcdWidth) * Int(lcdHeight)
+        // Pace harder on tall/wide LCDs to cut heat (240×400, 640×360, …).
+        if pixels >= 200_000 {
+            self.minFrameIntervalMs = 50 // ~20 fps (Prince / AC)
+        } else if pixels >= 90_000 {
+            self.minFrameIntervalMs = 40 // ~25 fps (Real Football / Diamond)
+        } else {
+            self.minFrameIntervalMs = 33 // ~30 fps (240×320)
+        }
     }
 
     // MARK: - Diagnostics (tests)
