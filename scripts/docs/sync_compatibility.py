@@ -101,14 +101,18 @@ def main() -> None:
             "Not working": "status-broken",
         }.get(status, "status-playable")
         badge = f'<span class="{css}">{emoji_for(status, status_emoji)} {status}</span>'
+        page = SRC / "games" / f"{title}.md"
+        label = f"[{title}](compatibility/games/{title}.md)" if page.exists() else title
         rows.append(
-            f"| [{title}](compatibility/games/{title}.md) | {g.get('vendor', '—')} | "
+            f"| {label} | {g.get('vendor', '—')} | "
             f"{g.get('midp', '—')} | {badge} | {fps} | {g['touch']} | {g['keypad']} | "
             f"{g['rms']} | {g['audio']} | {g['notes']} |"
         )
 
     total = len(games)
-    launch_ok = sum(1 for g in games if g.get("launch_success"))
+    tested_games = [g for g in games if g["status"] != "Untested"]
+    tested = len(tested_games)
+    launch_ok = sum(1 for g in tested_games if g.get("launch_success"))
     playable = sum(1 for g in games if g["status"] in {"Perfect", "Playable"})
     partial = sum(1 for g in games if g["status"] == "Partial")
     launch_only = sum(1 for g in games if g["status"] == "Launch only")
@@ -121,7 +125,7 @@ def main() -> None:
     launch_counts = Counter(
         {
             "Launch OK": launch_ok,
-            "Launch fail": total - launch_ok,
+            "Launch fail": tested - launch_ok,
         }
     )
     outcome_counts = Counter(
@@ -133,25 +137,33 @@ def main() -> None:
         }
     )
 
+    per_game = sorted((SRC / "games").glob("*.md"))
+    per_game_section = ""
+    if per_game:
+        links = "\n".join(f"- [{p.stem}](compatibility/games/{p.name})" for p in per_game)
+        per_game_section = f"\n## Per-game reports\n\n{links}\n"
+
     compat_page = f"""# Compatibility
 
-CoreJ2 tracks MIDlet compatibility from **device validation reports**.
+CoreJ2 tracks compatibility for the **50 most famous J2ME games** from **device validation reports**.
+Titles marked Untested are on the target list and have not been measured yet.
 This page is generated from [`compatibility/compatibility.json`](https://github.com/{REPO}/blob/main/compatibility/compatibility.json) — do not hand-edit the matrix.
 
 **Downloads:** [JSON](compatibility/compatibility.json) · [CSV](compatibility/compatibility.csv)
 
 **Validation baseline:** {validation['date']} · {validation['device']} · iOS {validation['ios']}  
 **Runtime:** {validation['runtime']}  
-**Primary reports:** E11-US001 · E11-US002 · E11-US003
+**Primary reports:** Phase 3 device matrix · XS Max playtest
 
 ## Snapshot
 
 | Metric | Value |
 |--------|-------|
-| Titles in corpus | {total} |
-| Launch success | {launch_ok}/{total} ({pct(launch_ok, total)}%) |
-| Playable or better | {playable}/{total} ({pct(playable, total)}%) |
-| Compatibility (playable+) | **{pct(playable, total)}%** |
+| Titles tracked (Top 50) | {total} |
+| Tested on device | {tested}/{total} |
+| Launch success (tested) | {launch_ok}/{tested} ({pct(launch_ok, tested)}%) |
+| Playable or better (tested) | {playable}/{tested} ({pct(playable, tested)}%) |
+| Compatibility (playable+ of tested) | **{pct(playable, tested)}%** |
 
 See also: [Compatibility statistics](compatibility-stats.md) · [Performance](performance.md)
 
@@ -174,25 +186,12 @@ See also: [Compatibility statistics](compatibility-stats.md) · [Performance](pe
 
 ## How to read FPS
 
-FPS values come from the E11-US001 accessibility LCD frame counter over ~5 minute sessions.
-
-- **Astroids / Ubertris** — strong continuous painter throughput
-- **Tetris** — playable with moderate frame growth
-- **Alea** — first paint OK; counter can stall (P2)
-- **Gryzzles** — no timed FPS sample from E11-US001; validated after RMS fix in E11-US003
+FPS is recorded per title when measured during device sessions. A dash (—) means it has not been measured yet.
 
 ## Audio
 
-Audio / MMAPI was out of scope for E11 validation. Cells marked Untested are intentional.
-
-## Per-game reports
-
-- [Alea](compatibility/games/Alea.md)
-- [Astroids](compatibility/games/Astroids.md)
-- [Tetris](compatibility/games/Tetris.md)
-- [Gryzzles](compatibility/games/Gryzzles.md)
-- [Ubertris](compatibility/games/Ubertris.md)
-"""
+Audio / MMAPI is tested per title on device. Cells marked Untested have not been measured yet.
+{per_game_section}"""
     (ROOT / "docs" / "compatibility.md").write_text(compat_page)
 
     stats_page = f"""# Compatibility Statistics
@@ -203,12 +202,13 @@ Auto-generated from `compatibility/compatibility.json`. Re-run `scripts/docs/syn
 
 | Metric | Count | Rate |
 |--------|------:|-----:|
-| Titles | {total} | 100% |
-| Launch success | {launch_ok} | {pct(launch_ok, total)}% |
-| Playable+ | {playable} | {pct(playable, total)}% |
-| Partial | {partial} | {pct(partial, total)}% |
-| Launch only | {launch_only} | {pct(launch_only, total)}% |
-| Not working | {broken} | {pct(broken, total)}% |
+| Titles tracked | {total} | 100% |
+| Tested | {tested} | {pct(tested, total)}% |
+| Launch success (tested) | {launch_ok} | {pct(launch_ok, tested)}% |
+| Playable+ (tested) | {playable} | {pct(playable, tested)}% |
+| Partial (tested) | {partial} | {pct(partial, tested)}% |
+| Launch only (tested) | {launch_only} | {pct(launch_only, tested)}% |
+| Not working (tested) | {broken} | {pct(broken, tested)}% |
 
 {mermaid_pie("Compatibility outcome", outcome_counts)}
 
@@ -234,7 +234,7 @@ Auto-generated from `compatibility/compatibility.json`. Re-run `scripts/docs/syn
 
 ## Notes
 
-Charts reflect the **current published corpus only**. Expanding Epic 12+ titles will change these rates automatically when `compatibility.json` is updated.
+Charts reflect the **Top 50 target list**. Rates update automatically as titles are tested and `compatibility.json` is updated.
 """
     (ROOT / "docs" / "compatibility-stats.md").write_text(stats_page)
     print(f"synced {total} games → docs/compatibility/ + stats")

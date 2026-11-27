@@ -49,18 +49,65 @@ Validated on a physical **iPhone XS Max (iOS 18.7.1)**. iPhone + iPad, iOS 17+.
 
 ---
 
-## Compatibility (device-validated)
+## Compatibility — Top 50 (device-validated)
+
+CoreJ2 focuses on the **50 most famous J2ME games** and tracks each one on a
+real iPhone. Full matrix (touch, keypad, RMS, audio per game):
+[docs/compatibility.md](docs/compatibility.md) ·
+[data](compatibility/compatibility.json)
 
 | Game | Result |
 |------|--------|
-| Miami Nights: Singles in the City (EN v1.0.8 / ES-ML v1.0.3) | ✅ Playable, audio |
-| Gangstar 2: Kings of L.A. | ✅ Paints / playable |
-| Bounce Tales | ✅ Paints / playable |
-| Real Football 2011 | ✅ Paints / playable |
-| Prince of Persia: Las Arenas Olvidadas (640×360 touch) | ✅ Paints / playable |
-| Assassin's Creed (640×360 touch) | ✅ Paints / playable |
-| Diamond Rush | ✅ Paints / playable |
-| Asphalt 3: Street Rules 3D | ✅ M3G 3D painting |
+| Miami Nights: Singles in the City (EN v1.0.8 / ES-ML v1.0.3) | ✅ Playable |
+| Gangstar 2: Kings of L.A. | ✅ Playable |
+| Asphalt 3: Street Rules 3D | 🟡 Partial (fix in progress) |
+| Diamond Rush | ✅ Playable |
+| Bounce Tales | ✅ Playable |
+| Real Football 2011 | ✅ Playable |
+| Prince of Persia: Las Arenas Olvidadas (640×360 touch) | ✅ Playable |
+| Assassin's Creed (640×360 touch) | ✅ Playable |
+| Snake III | ⚪ Not tested yet |
+| Bounce | ⚪ Not tested yet |
+| Tetris | ⚪ Not tested yet |
+| Asphalt 4: Elite Racing | ⚪ Not tested yet |
+| Need for Speed: Most Wanted | ⚪ Not tested yet |
+| Gangstar Rio: City of Saints | ⚪ Not tested yet |
+| Modern Combat 3: Fallen Nation | ⚪ Not tested yet |
+| N.O.V.A. | ⚪ Not tested yet |
+| Hero of Sparta | ⚪ Not tested yet |
+| God of War: Betrayal | ⚪ Not tested yet |
+| Splinter Cell: Conviction | ⚪ Not tested yet |
+| Assassin's Creed II | ⚪ Not tested yet |
+| Spider-Man: Toxic City | ⚪ Not tested yet |
+| The Sims 3 | ⚪ Not tested yet |
+| New York Nights 2: Friends for Life | ⚪ Not tested yet |
+| Gravity Defied | ⚪ Not tested yet |
+| Worms 2007 | ⚪ Not tested yet |
+| Doom RPG | ⚪ Not tested yet |
+| Wolfenstein RPG | ⚪ Not tested yet |
+| Age of Empires II Mobile | ⚪ Not tested yet |
+| Midnight Pool 3 | ⚪ Not tested yet |
+| Pro Evolution Soccer 2011 | ⚪ Not tested yet |
+| FIFA 2011 | ⚪ Not tested yet |
+| Ultimate Mortal Kombat 3 | ⚪ Not tested yet |
+| Street Fighter II Turbo | ⚪ Not tested yet |
+| Tekken Mobile | ⚪ Not tested yet |
+| Contra 4 | ⚪ Not tested yet |
+| Castlevania: Order of Shadows | ⚪ Not tested yet |
+| Sonic the Hedgehog | ⚪ Not tested yet |
+| Doodle Jump | ⚪ Not tested yet |
+| Angry Birds | ⚪ Not tested yet |
+| Zuma Deluxe | ⚪ Not tested yet |
+| Bejeweled | ⚪ Not tested yet |
+| Block Breaker Deluxe | ⚪ Not tested yet |
+| Brain Challenge | ⚪ Not tested yet |
+| Monopoly | ⚪ Not tested yet |
+| Ferrari GT: Evolution | ⚪ Not tested yet |
+| Driver: L.A. Undercover | ⚪ Not tested yet |
+| Brothers in Arms | ⚪ Not tested yet |
+| Call of Duty: Black Ops | ⚪ Not tested yet |
+| Iron Man 2 | ⚪ Not tested yet |
+| Avatar | ⚪ Not tested yet |
 
 CoreJ2 ships **no games**. You load your own `.jar` files.
 
@@ -181,7 +228,8 @@ Palette: `#2563EB` · `#60A5FA` · `#0B1220` · `#FFFFFF` · `#94A3B8`
 ## Status
 
 ✅ **v1.0** — commercial J2ME titles run on physical iPhone with embedded
-OpenJDK Mobile and a clean-room MIDP. Broader compatibility is in progress.
+OpenJDK Mobile and a clean-room MIDP. Compatibility work now focuses on the
+Top 50 most famous J2ME games (see above).
 
 ---
 
