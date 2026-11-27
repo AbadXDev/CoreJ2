@@ -5,11 +5,7 @@
 Embedded OpenJDK Mobile · Clean-room MIDP · SwiftUI · Free for personal use
 
 <p align="center">
-  <img src="docs/assets/gifs/miami-nights.gif" alt="Miami Nights gameplay on CoreJ2" width="360" />
-</p>
-
-<p align="center">
-  <em>Miami Nights: Singles in the City — gameplay on a physical iPhone</em>
+  <img src="docs/assets/branding/banner-github.png" alt="CoreJ2 — Java ME games on iPhone & iPad" width="100%" />
 </p>
 
 <p align="center">
