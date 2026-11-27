@@ -76,6 +76,7 @@ CoreJ2 ships **no games**. You load your own `.jar` files.
 | Menus | ✓ |
 | Gameplay | ✓ |
 | Audio (MIDI/WAV) | ✓ |
+| Vibration (haptics) | ✓ |
 | Save / Load (RMS) | ✓ |
 | On-screen controls | ✓ |
 | Stable gameplay | ✓ |
