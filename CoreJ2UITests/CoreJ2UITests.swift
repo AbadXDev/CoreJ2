@@ -2,7 +2,7 @@
 //  CoreJ2UITests.swift
 //  CoreJ2UITests
 //
-//  Created by Flakito on 7/19/26.
+//  Created by Leonel Figuereo on 7/19/26.
 //
 
 import XCTest

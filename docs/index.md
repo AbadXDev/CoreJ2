@@ -21,11 +21,11 @@ hide:
 <p class="corej2-hero__caption">Miami Nights: Singles in the City — gameplay on a physical iPhone</p>
 
 <p class="corej2-hero__badges" markdown="1">
-[![Alpha](https://img.shields.io/badge/status-Alpha-orange)](https://github.com/flakito-loko/CoreJ2)
-[![Version](https://img.shields.io/badge/version-0.9.0--alpha-blue)](https://github.com/flakito-loko/CoreJ2/releases)
-[![Swift](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)](https://github.com/flakito-loko/CoreJ2)
-[![iOS](https://img.shields.io/badge/iOS-Device-000000?logo=apple&logoColor=white)](https://github.com/flakito-loko/CoreJ2)
-[![Docs](https://img.shields.io/badge/Docs-GitHub%20Pages-0A84FF)](https://flakito-loko.github.io/CoreJ2/)
+[![Alpha](https://img.shields.io/badge/status-Alpha-orange)](https://github.com/AbadXDev/CoreJ2)
+[![Version](https://img.shields.io/badge/version-0.9.0--alpha-blue)](https://github.com/AbadXDev/CoreJ2/releases)
+[![Swift](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)](https://github.com/AbadXDev/CoreJ2)
+[![iOS](https://img.shields.io/badge/iOS-Device-000000?logo=apple&logoColor=white)](https://github.com/AbadXDev/CoreJ2)
+[![Docs](https://img.shields.io/badge/Docs-GitHub%20Pages-0A84FF)](https://abadxdev.github.io/CoreJ2/)
 </p>
 
 <p class="corej2-hero__actions" markdown="1">
@@ -33,7 +33,7 @@ hide:
 [🎮 Compatibility](compatibility.md){ .md-button }
 [🏗 Architecture](architecture.md){ .md-button }
 [🗺 Roadmap](roadmap.md){ .md-button }
-[📥 Source Code](https://github.com/flakito-loko/CoreJ2){ .md-button }
+[📥 Source Code](https://github.com/AbadXDev/CoreJ2){ .md-button }
 </p>
 
 </div>
@@ -147,20 +147,6 @@ See [Screenshots](screenshots/index.md).
 
 ---
 
-## Gameplay Videos
-
-Full device recordings live in the repository (hosted outside the Pages artifact to keep deploys reliable).
-
-| Title | Recording |
-|-------|-----------|
-| Miami Nights | [Download MP4](https://github.com/flakito-loko/CoreJ2/raw/main/docs/assets/videos/miami-nights.MP4) |
-| Tetris | [Download MP4](https://github.com/flakito-loko/CoreJ2/raw/main/docs/assets/videos/tetris.mp4) |
-| Astroids | [Download MP4](https://github.com/flakito-loko/CoreJ2/raw/main/docs/assets/videos/astroids.MP4) |
-
-GIF previews are above; use the downloads for full-length playback.
-
----
-
 ## Architecture
 
 ```text
@@ -206,6 +192,6 @@ Device-validated titles live in the public [Compatibility](compatibility.md) mat
 
 <div class="corej2-footer-note" markdown="1">
 
-🚧 **Alpha · v0.9.0-alpha** · [GitHub](https://github.com/flakito-loko/CoreJ2) · [Roadmap](roadmap.md) · [Compatibility](compatibility.md)
+🚧 **Alpha · v0.9.0-alpha** · [GitHub](https://github.com/AbadXDev/CoreJ2) · [Roadmap](roadmap.md) · [Compatibility](compatibility.md)
 
 </div>

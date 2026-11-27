@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "compatibility"
 DST = ROOT / "docs" / "compatibility"
-REPO = "flakito-loko/CoreJ2"
+REPO = "AbadXDev/CoreJ2"
 
 
 def emoji_for(status: str, legend: dict[str, str]) -> str:

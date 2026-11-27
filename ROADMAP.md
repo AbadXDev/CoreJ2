@@ -1,6 +1,6 @@
 # Roadmap
 
-Public roadmap for CoreJ2. Site mirror: [docs/roadmap.md](https://flakito-loko.github.io/CoreJ2/roadmap/).
+Public roadmap for CoreJ2. Site mirror: [docs/roadmap.md](https://abadxdev.github.io/CoreJ2/roadmap/).
 
 ## Current version
 
@@ -40,4 +40,4 @@ Public roadmap for CoreJ2. Site mirror: [docs/roadmap.md](https://flakito-loko.g
 | Audio / MMAPI | ██░░░░░░░░░░░░░░░░░░ 10% |
 | App Store packaging | ░░░░░░░░░░░░░░░░░░░░ 0% |
 
-Details: [CHANGELOG](CHANGELOG.md) · [milestones](https://flakito-loko.github.io/CoreJ2/milestones/)
+Details: [CHANGELOG](CHANGELOG.md) · [milestones](https://abadxdev.github.io/CoreJ2/milestones/)

@@ -16,7 +16,7 @@ All notable changes to CoreJ2, organized by epic.
 - Public documentation and website polish (DOCS-US002)
 - Why CoreJ2, milestones, performance, compatibility statistics
 - Screenshot and GIF placeholder layout
-- MkDocs Material branding for `flakito-loko/CoreJ2`
+- MkDocs Material branding for `AbadXDev/CoreJ2`
 
 ## [0.9.0-alpha] — 2026-08-06
 

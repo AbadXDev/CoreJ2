@@ -6,7 +6,7 @@ CoreJ2 visual identity — original mark (phone + LCD + diamond core + keypad). 
 
 ## Assets
 
-Canonical files: [`assets/branding/`](https://github.com/flakito-loko/CoreJ2/tree/main/assets/branding)
+Canonical files: [`assets/branding/`](https://github.com/AbadXDev/CoreJ2/tree/main/assets/branding)
 
 | Asset | Preview |
 |-------|---------|
@@ -19,7 +19,7 @@ Canonical files: [`assets/branding/`](https://github.com/flakito-loko/CoreJ2/tre
 
 ## Guidelines
 
-Full rules: [`branding-guidelines.md`](https://github.com/flakito-loko/CoreJ2/blob/main/assets/branding/branding-guidelines.md)
+Full rules: [`branding-guidelines.md`](https://github.com/AbadXDev/CoreJ2/blob/main/assets/branding/branding-guidelines.md)
 
 ### Palette
 
