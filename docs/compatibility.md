@@ -26,14 +26,14 @@ See also: [Compatibility statistics](compatibility-stats.md) · [Performance](pe
 
 | Game | Vendor | MIDP | Status | FPS | Touch | Keypad | RMS | Audio | Notes |
 |------|--------|------|--------|-----|-------|--------|-----|-------|-------|
-| Miami Nights: Singles in the City | Gameloft | MIDP 2.0 | <span class="status-playable">🟢 Playable</span> | — | Pass | Pass | Pass | Pass | EN v1.0.8 + ES-ML v1.0.3 multilanguage builds; audio + RMS OK on XS Max. |
-| Gangstar 2: Kings of L.A. | Gameloft | MIDP 2.0 | <span class="status-playable">🟢 Playable</span> | — | Pass | Pass | Pass | Pass | Full pass incl. RMS (Phase 3 matrix). |
-| Asphalt 3: Street Rules 3D | Gameloft | MIDP 2.0 | <span class="status-partial">🟡 Partial</span> | — | Pass | Pass | Untested | Untested | M3G renders and the car is visible; textures still broken in real gameplay — fix in progress. |
-| Diamond Rush | Gameloft | MIDP 2.0 | <span class="status-playable">🟢 Playable</span> | — | Pass | Pass | Pass | Pass | Freeze after first tap fixed (RMS enumeration); confirmed playable on XS Max. |
-| Bounce Tales | Nokia | MIDP 2.0 | <span class="status-playable">🟢 Playable</span> | — | Pass | Pass | Untested | Pass | GameCanvas + MIDI audio OK. |
-| Real Football 2011 | Gameloft | MIDP 2.0 | <span class="status-playable">🟢 Playable</span> | — | Pass | Pass | Pass | Untested | Full pass incl. RMS. |
-| Prince of Persia: The Forgotten Sands | Gameloft | MIDP 2.0 | <span class="status-playable">🟢 Playable</span> | — | Pass | Pass | Pass | Partial | 640x360 touch build; one audio clip fails to prepare (AVAudio -10870). |
-| Assassin's Creed | Gameloft | MIDP 2.0 | <span class="status-playable">🟢 Playable</span> | — | Pass | Pass | Pass | Pass | 640x360 touch build; full pass. |
+| Miami Nights: Singles in the City (240×320) | Gameloft | MIDP 2.0 | <span class="status-playable">🟢 Playable</span> | — | Pass | Pass | Pass | Pass | EN v1.0.8 + ES-ML v1.0.3 multilanguage builds; audio + RMS OK on XS Max. |
+| Gangstar 2: Kings of L.A. (240×320) | Gameloft | MIDP 2.0 | <span class="status-playable">🟢 Playable</span> | — | Pass | Pass | Pass | Pass | Full pass incl. RMS (Phase 3 matrix). |
+| Asphalt 3: Street Rules 3D (240×320) | Gameloft | MIDP 2.0 | <span class="status-partial">🟡 Partial</span> | — | Pass | Pass | Untested | Untested | M3G renders and the car is visible; textures still broken in real gameplay — fix in progress. |
+| Diamond Rush (240×400 · touch) | Gameloft | MIDP 2.0 | <span class="status-playable">🟢 Playable</span> | — | Pass | Pass | Pass | Pass | Freeze after first tap fixed (RMS enumeration); confirmed playable on XS Max. |
+| Bounce Tales (Multi) | Nokia | MIDP 2.0 | <span class="status-playable">🟢 Playable</span> | — | Pass | Pass | Untested | Pass | GameCanvas + MIDI audio OK. |
+| Real Football 2011 (240×400 · touch) | Gameloft | MIDP 2.0 | <span class="status-playable">🟢 Playable</span> | — | Pass | Pass | Pass | Untested | Full pass incl. RMS. |
+| Prince of Persia: The Forgotten Sands (640×360 · touch) | Gameloft | MIDP 2.0 | <span class="status-playable">🟢 Playable</span> | — | Pass | Pass | Pass | Partial | 640x360 touch build; one audio clip fails to prepare (AVAudio -10870). |
+| Assassin's Creed (640×360 · touch) | Gameloft | MIDP 2.0 | <span class="status-playable">🟢 Playable</span> | — | Pass | Pass | Pass | Pass | 640x360 touch build; full pass. |
 | Snake III | Nokia | MIDP 2.0 | <span class="status-playable">⚪ Untested</span> | — | Untested | Untested | Untested | Untested |  |
 | Bounce | Nokia | MIDP 2.0 | <span class="status-playable">⚪ Untested</span> | — | Untested | Untested | Untested | Untested |  |
 | Tetris | EA Mobile | MIDP 2.0 | <span class="status-playable">⚪ Untested</span> | — | Untested | Untested | Untested | Untested |  |

@@ -58,14 +58,14 @@ real iPhone. Full matrix (touch, keypad, RMS, audio per game):
 
 | Game | Result |
 |------|--------|
-| Miami Nights: Singles in the City (EN v1.0.8 / ES-ML v1.0.3) | ✅ Playable |
-| Gangstar 2: Kings of L.A. | ✅ Playable |
-| Asphalt 3: Street Rules 3D | 🟡 Partial (fix in progress) |
-| Diamond Rush | ✅ Playable |
-| Bounce Tales | ✅ Playable |
-| Real Football 2011 | ✅ Playable |
-| Prince of Persia: Las Arenas Olvidadas (640×360 touch) | ✅ Playable |
-| Assassin's Creed (640×360 touch) | ✅ Playable |
+| Miami Nights: Singles in the City (EN v1.0.8 / ES-ML v1.0.3) (240×320) | ✅ Playable |
+| Gangstar 2: Kings of L.A. (240×320) | ✅ Playable |
+| Asphalt 3: Street Rules 3D (240×320) | 🟡 Partial (fix in progress) |
+| Diamond Rush (240×400 · touch) | ✅ Playable |
+| Bounce Tales (Multi) | ✅ Playable |
+| Real Football 2011 (240×400 · touch) | ✅ Playable |
+| Prince of Persia: Las Arenas Olvidadas (640×360 · touch) | ✅ Playable |
+| Assassin's Creed (640×360 · touch) | ✅ Playable |
 | Snake III | ⚪ Not tested yet |
 | Bounce | ⚪ Not tested yet |
 | Tetris | ⚪ Not tested yet |

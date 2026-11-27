@@ -50,6 +50,8 @@ def main() -> None:
         "vendor",
         "midp",
         "genre",
+        "resolution",
+        "input",
         "status",
         "fps",
         "rms",
@@ -71,6 +73,8 @@ def main() -> None:
                     "vendor": g.get("vendor", ""),
                     "midp": g.get("midp", ""),
                     "genre": g.get("genre", ""),
+                    "resolution": g.get("resolution", ""),
+                    "input": g.get("input", ""),
                     "status": g["status"],
                     "fps": "" if g.get("fps") is None else g["fps"],
                     "rms": g["rms"],
@@ -103,6 +107,12 @@ def main() -> None:
         badge = f'<span class="{css}">{emoji_for(status, status_emoji)} {status}</span>'
         page = SRC / "games" / f"{title}.md"
         label = f"[{title}](compatibility/games/{title}.md)" if page.exists() else title
+        res = g.get("resolution", "")
+        if res:
+            suffix = res.replace("x", "×")
+            if "Touch" in g.get("input", ""):
+                suffix += " · touch"
+            label = f"{label} ({suffix})"
         rows.append(
             f"| {label} | {g.get('vendor', '—')} | "
             f"{g.get('midp', '—')} | {badge} | {fps} | {g['touch']} | {g['keypad']} | "
