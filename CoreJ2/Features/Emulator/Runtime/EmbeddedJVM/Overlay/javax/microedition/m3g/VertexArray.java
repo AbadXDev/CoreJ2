@@ -45,12 +45,22 @@ public class VertexArray extends Object3D {
         System.arraycopy(values, 0, shorts, firstVertex * componentCount, numVertices * componentCount);
     }
 
-    /** Package helper for the software rasterizer. */
+    /**
+     * Package helper for the software rasterizer.
+     *
+     * <p>JSR-184 documents byte components as signed, but Asphalt (and most
+     * hand-authored M3G meshes) store texcoord bytes as 0..255. Reading them
+     * signed scrambles UVs into the negative range. We expose unsigned bytes
+     * for sampling; shorts stay signed.
+     */
     public void getFloat(int vertex, float[] out) {
         int base = vertex * componentCount;
         for (int i = 0; i < componentCount; i++) {
-            if (bytes != null) out[i] = bytes[base + i];
-            else out[i] = shorts[base + i];
+            if (bytes != null) {
+                out[i] = bytes[base + i] & 0xFF;
+            } else {
+                out[i] = shorts[base + i];
+            }
         }
     }
 }

@@ -16,6 +16,7 @@ dev/abadx/corej2/overlay/BitmapFont.class
 dev/abadx/corej2/overlay/BmpDecoder.class
 dev/abadx/corej2/overlay/IntArgbImage.class
 dev/abadx/corej2/overlay/PngDecoder.class
+dev/abadx/corej2/overlay/m3g/ArgbBmpDump.class
 dev/abadx/corej2/overlay/m3g/SoftwareM3GRenderer.class
 javax/microedition/io/Connection.class
 javax/microedition/io/ConnectionNotFoundException.class

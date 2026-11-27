@@ -219,6 +219,7 @@ public class Graphics3D {
     }
 
     private int meshVBFrames;
+    private int frameDumps;
 
     public void render(VertexBuffer vertices, IndexBuffer triangles, Appearance appearance, Transform transform, int scope) {
         if (colorBuffer == null || vertices == null || triangles == null) {
@@ -241,8 +242,29 @@ public class Graphics3D {
                         : false)
             );
             System.out.flush();
+            maybeDumpFrame();
         }
         flushToPlatform();
+    }
+
+    private void maybeDumpFrame() {
+        if (!dev.abadx.corej2.overlay.m3g.ArgbBmpDump.dumpEnabled() || colorBuffer == null) {
+            return;
+        }
+        if (frameDumps >= 6) {
+            return;
+        }
+        // Dump every logged MeshVB tick after the scene has some tris.
+        if (renderer.trianglesDrawn() < 100 && frameDumps == 0) {
+            return;
+        }
+        frameDumps++;
+        dev.abadx.corej2.overlay.m3g.ArgbBmpDump.writeBmp(
+            "frame-" + frameDumps + "-" + colorBuffer.width + "x" + colorBuffer.height + ".bmp",
+            colorBuffer.width,
+            colorBuffer.height,
+            colorBuffer.data
+        );
     }
 
     /**

@@ -1,5 +1,5 @@
 CoreJ2 FASE-3 pure classpath
-classes=281
+classes=282
 sources:
   - org.objectweb.asm (ObjectWeb ASM, BSD; tree under Vendor/FreeJ2ME/src for convenience)
   - CoreJ2 Overlay (clean-room MIDP/MMAPI/M3G/Nokia + platform bridges)

@@ -1,8 +1,10 @@
 import SwiftUI
 
-/// On-screen J2ME controls: soft keys, D-pad + FIRE, optional numeric keypad.
+/// On-screen J2ME controls: soft keys, sliding D-pad + FIRE, optional numeric keypad.
 ///
-/// LCD stays above this view. Hold a button to emit `keyRepeated` after a short delay.
+/// LCD stays above this view. The D-pad accepts a continuous drag: sliding from
+/// one direction to another emits `keyReleased` of the previous key(s) and
+/// `keyPressed` of the new one(s); holding repeats; between two axes = diagonal.
 struct EmulatorKeypadView: View {
 
     // MARK: - Callbacks
@@ -65,7 +67,13 @@ struct EmulatorKeypadView: View {
 
     private var dpadAndFire: some View {
         HStack(spacing: 28) {
-            dpad
+            SlidingDPadView(
+                onKeyDown: onKeyDown,
+                onKeyUp: onKeyUp,
+                onKeyRepeat: onKeyRepeat
+            )
+            .frame(width: 168, height: 168)
+
             HoldableKeyButton(
                 title: "OK",
                 accessibilityLabel: "Fire",
@@ -76,52 +84,6 @@ struct EmulatorKeypadView: View {
                 onRepeat: onKeyRepeat
             )
             .frame(width: 72, height: 72)
-        }
-    }
-
-    private var dpad: some View {
-        VStack(spacing: 6) {
-            HoldableKeyButton(
-                title: "▲",
-                accessibilityLabel: "Up",
-                keyCode: J2MEKeyCode.up,
-                onDown: onKeyDown,
-                onUp: onKeyUp,
-                onRepeat: onKeyRepeat
-            )
-            .frame(width: 64, height: 52)
-
-            HStack(spacing: 6) {
-                HoldableKeyButton(
-                    title: "◀",
-                    accessibilityLabel: "Left",
-                    keyCode: J2MEKeyCode.left,
-                    onDown: onKeyDown,
-                    onUp: onKeyUp,
-                    onRepeat: onKeyRepeat
-                )
-                .frame(width: 64, height: 52)
-
-                HoldableKeyButton(
-                    title: "▼",
-                    accessibilityLabel: "Down",
-                    keyCode: J2MEKeyCode.down,
-                    onDown: onKeyDown,
-                    onUp: onKeyUp,
-                    onRepeat: onKeyRepeat
-                )
-                .frame(width: 64, height: 52)
-
-                HoldableKeyButton(
-                    title: "▶",
-                    accessibilityLabel: "Right",
-                    keyCode: J2MEKeyCode.right,
-                    onDown: onKeyDown,
-                    onUp: onKeyUp,
-                    onRepeat: onKeyRepeat
-                )
-                .frame(width: 64, height: 52)
-            }
         }
     }
 
@@ -164,6 +126,133 @@ struct EmulatorKeypadView: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Sliding D-pad
+
+/// Continuous cross: drag without lifting; corners press two axes (diagonal).
+private struct SlidingDPadView: View {
+    let onKeyDown: (Int32) -> Void
+    let onKeyUp: (Int32) -> Void
+    let onKeyRepeat: (Int32) -> Void
+
+    @State private var activeKeys: Set<Int32> = []
+    @State private var isTouching = false
+    @State private var repeatTask: Task<Void, Never>?
+
+    private let threshold: CGFloat = 0.28
+
+    var body: some View {
+        GeometryReader { geo in
+            let size = min(geo.size.width, geo.size.height)
+            ZStack {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color(uiColor: .tertiarySystemFill))
+
+                directionLabel("▲", active: activeKeys.contains(J2MEKeyCode.up))
+                    .offset(y: -size * 0.28)
+                directionLabel("▼", active: activeKeys.contains(J2MEKeyCode.down))
+                    .offset(y: size * 0.28)
+                directionLabel("◀", active: activeKeys.contains(J2MEKeyCode.left))
+                    .offset(x: -size * 0.28)
+                directionLabel("▶", active: activeKeys.contains(J2MEKeyCode.right))
+                    .offset(x: size * 0.28)
+
+                Circle()
+                    .fill(isTouching ? Color.accentColor.opacity(0.35) : Color.primary.opacity(0.12))
+                    .frame(width: size * 0.22, height: size * 0.22)
+            }
+            .frame(width: size, height: size)
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        if !isTouching {
+                            isTouching = true
+                            startRepeat()
+                        }
+                        let nx = (value.location.x / size) * 2 - 1
+                        let ny = (value.location.y / size) * 2 - 1
+                        applyDirections(nx: nx, ny: ny)
+                    }
+                    .onEnded { _ in
+                        isTouching = false
+                        stopRepeat()
+                        releaseAll()
+                    }
+            )
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Directional pad")
+            .accessibilityHint("Slide between directions without lifting")
+            .accessibilityAddTraits(.isButton)
+        }
+    }
+
+    private func directionLabel(_ title: String, active: Bool) -> some View {
+        Text(title)
+            .font(.title2.weight(.bold))
+            .foregroundStyle(active ? Color.white : Color.primary)
+            .frame(width: 44, height: 44)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(active ? Color.accentColor : Color.clear)
+            )
+    }
+
+    private func applyDirections(nx: CGFloat, ny: CGFloat) {
+        var next = Set<Int32>()
+        if nx <= -threshold { next.insert(J2MEKeyCode.left) }
+        if nx >= threshold { next.insert(J2MEKeyCode.right) }
+        if ny <= -threshold { next.insert(J2MEKeyCode.up) }
+        if ny >= threshold { next.insert(J2MEKeyCode.down) }
+        // Opposing axes cancel (can't hold left+right).
+        if next.contains(J2MEKeyCode.left) && next.contains(J2MEKeyCode.right) {
+            next.remove(J2MEKeyCode.left)
+            next.remove(J2MEKeyCode.right)
+        }
+        if next.contains(J2MEKeyCode.up) && next.contains(J2MEKeyCode.down) {
+            next.remove(J2MEKeyCode.up)
+            next.remove(J2MEKeyCode.down)
+        }
+        syncKeys(to: next)
+    }
+
+    private func syncKeys(to next: Set<Int32>) {
+        let released = activeKeys.subtracting(next)
+        let pressed = next.subtracting(activeKeys)
+        for code in released.sorted() {
+            onKeyUp(code)
+        }
+        for code in pressed.sorted() {
+            onKeyDown(code)
+        }
+        activeKeys = next
+    }
+
+    private func releaseAll() {
+        for code in activeKeys.sorted() {
+            onKeyUp(code)
+        }
+        activeKeys = []
+    }
+
+    private func startRepeat() {
+        stopRepeat()
+        repeatTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 350_000_000)
+            while !Task.isCancelled {
+                for code in activeKeys.sorted() {
+                    onKeyRepeat(code)
+                }
+                try? await Task.sleep(nanoseconds: 100_000_000)
+            }
+        }
+    }
+
+    private func stopRepeat() {
+        repeatTask?.cancel()
+        repeatTask = nil
     }
 }
 

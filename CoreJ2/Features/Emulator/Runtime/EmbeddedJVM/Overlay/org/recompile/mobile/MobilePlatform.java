@@ -100,6 +100,8 @@ public class MobilePlatform {
     }
 
     public void keyRepeated(int keycode) {
+        System.out.println("corej2-input: keyRepeated " + keycode);
+        System.out.flush();
         final javax.microedition.lcdui.Displayable current = Mobile.getDisplay().getCurrent();
         if (current != null) {
             current.keyRepeated(keycode);

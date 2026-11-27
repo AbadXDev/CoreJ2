@@ -156,19 +156,26 @@ public class Image2D extends Object3D {
         if (argb == null) {
             return 0xFFFFFFFF;
         }
-        // Accept either normalized [0,1] or already-scaled texel coords.
-        float tu = u;
-        float tv = v;
-        if (tu >= 0f && tu <= 1.0001f && tv >= 0f && tv <= 1.0001f) {
-            tu = u * width;
-            tv = v * height;
-        }
+        // JSR-184: after texture transform + projection, (s'', t'') are
+        // normalized with (0,0)=upper-left and (1,1)=lower-right. Always map
+        // that way; wrap modes handle values outside [0,1].
+        float tu = u * width;
+        float tv = v * height;
         if (filter == Texture2D.FILTER_LINEAR) {
             return sampleBilinear(tu - 0.5f, tv - 0.5f, wrapS, wrapT);
         }
         int x = wrapCoord((int) Math.floor(tu), width, wrapS);
         int y = wrapCoord((int) Math.floor(tv), height, wrapT);
         return argb[y * width + x];
+    }
+
+    /** Expose decoded ARGB for QA texture dumps. */
+    public int[] copyARGB() {
+        ensureARGB();
+        if (argb == null) {
+            return null;
+        }
+        return argb.clone();
     }
 
     /** Default sample: repeat + nearest (legacy call sites). */

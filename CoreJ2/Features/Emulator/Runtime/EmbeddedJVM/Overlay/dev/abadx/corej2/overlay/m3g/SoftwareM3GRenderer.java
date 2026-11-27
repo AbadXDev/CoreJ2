@@ -2,10 +2,13 @@ package dev.abadx.corej2.overlay.m3g;
 
 import javax.microedition.m3g.Appearance;
 import javax.microedition.m3g.Camera;
+import javax.microedition.m3g.CompositingMode;
 import javax.microedition.m3g.Group;
+import javax.microedition.m3g.Image2D;
 import javax.microedition.m3g.IndexBuffer;
 import javax.microedition.m3g.Mesh;
 import javax.microedition.m3g.Node;
+import javax.microedition.m3g.PolygonMode;
 import javax.microedition.m3g.Texture2D;
 import javax.microedition.m3g.Transform;
 import javax.microedition.m3g.TriangleStripArray;
@@ -18,13 +21,15 @@ import dev.abadx.corej2.overlay.IntArgbImage;
 /**
  * Minimal software rasterizer for the CoreJ2 M3G overlay.
  *
- * <p>Supports triangle-strip meshes with optional textured sampling. Enough to
- * get Asphalt-class titles painting something onto the LCD; not a full M3G.
+ * <p>Supports triangle-strip meshes with textured sampling, Texture2D
+ * composite transform, and basic compositing. Enough for Asphalt-class titles.
  */
 public final class SoftwareM3GRenderer {
 
     private int trianglesDrawn;
     private int meshesDrawn;
+    private int texturesDumped;
+    private boolean loggedUV;
 
     public int trianglesDrawn() {
         return trianglesDrawn;
@@ -47,9 +52,6 @@ public final class SoftwareM3GRenderer {
     ) {
         if (world == null || color == null) {
             return;
-        }
-        if (world.getBackground() != null) {
-            // Background clear is handled by Graphics3D.clear; keep pixels.
         }
         Camera cam = camera != null ? camera : world.getActiveCamera();
         renderNode(world, null, cam, cameraTransform, color, depth, vx, vy, vw, vh);
@@ -151,6 +153,52 @@ public final class SoftwareM3GRenderer {
         VertexArray uvs = vertices.getTexCoords(0, uvScaleBias);
         Texture2D texture = appearance != null ? appearance.getTexture(0) : null;
         int defaultColor = vertices.getDefaultColor();
+        VertexArray colors = vertices.getColors();
+        CompositingMode compositing = appearance != null ? appearance.getCompositingMode() : null;
+        PolygonMode polygonMode = appearance != null ? appearance.getPolygonMode() : null;
+
+        // Texture2D composite transform (T R S M) applied per-vertex before raster.
+        Transform texXform = null;
+        if (texture != null) {
+            texXform = new Transform();
+            texture.getCompositeTransform(texXform);
+            dumpTextureOnce(texture);
+        }
+        if (!loggedUV && uvs != null && texture != null) {
+            loggedUV = true;
+            float umin = Float.MAX_VALUE, umax = -Float.MAX_VALUE;
+            float vmin = Float.MAX_VALUE, vmax = -Float.MAX_VALUE;
+            float[] uvTmp = new float[4];
+            int n = uvs.getVertexCount();
+            for (int vi = 0; vi < n; vi++) {
+                uvs.getFloat(vi, uvTmp);
+                float su = uvTmp[0] * uvScaleBias[0] + uvScaleBias[1];
+                float sv = (uvs.getComponentCount() > 1 ? uvTmp[1] : 0) * uvScaleBias[0] + uvScaleBias[2];
+                if (su < umin) umin = su;
+                if (su > umax) umax = su;
+                if (sv < vmin) vmin = sv;
+                if (sv > vmax) vmax = sv;
+            }
+            float[] mat = new float[16];
+            texXform.get(mat);
+            boolean id =
+                mat[0] == 1 && mat[5] == 1 && mat[10] == 1 && mat[15] == 1
+                    && mat[12] == 0 && mat[13] == 0 && mat[14] == 0;
+            System.out.println(
+                "corej2-m3g: uvRange u=[" + umin + "," + umax + "] v=[" + vmin + "," + vmax + "]"
+                    + " n=" + n
+                    + " scale=" + uvScaleBias[0]
+                    + " bias=" + uvScaleBias[1] + "," + uvScaleBias[2]
+                    + " comps=" + uvs.getComponentCount()
+                    + " ctype=" + uvs.getComponentType()
+                    + " blend=" + texture.getBlending()
+                    + " wrap=" + texture.getWrappingS() + "/" + texture.getWrappingT()
+                    + " texXformIdentity=" + id
+                    + " img=" + texture.getImage().getWidth() + "x" + texture.getImage().getHeight()
+                    + " fmt=" + texture.getImage().getFormat()
+            );
+            System.out.flush();
+        }
 
         int[] idx = new int[triangles.getIndexCount()];
         triangles.getIndices(idx);
@@ -174,13 +222,35 @@ public final class SoftwareM3GRenderer {
                     i2 = t;
                 }
                 drawTriangle(
-                    eye, i0, i1, i2, uvs, uvScaleBias, texture, defaultColor,
-                    color, depth, vx, vy, vw, vh
+                    eye, i0, i1, i2, uvs, uvScaleBias, texXform, texture, colors, defaultColor,
+                    compositing, polygonMode, color, depth, vx, vy, vw, vh
                 );
                 trianglesDrawn++;
             }
             cursor += len;
         }
+    }
+
+    private void dumpTextureOnce(Texture2D texture) {
+        if (!ArgbBmpDump.dumpEnabled() || texturesDumped >= 8) {
+            return;
+        }
+        Image2D img = texture.getImage();
+        if (img == null) {
+            return;
+        }
+        int[] px = img.copyARGB();
+        if (px == null) {
+            return;
+        }
+        texturesDumped++;
+        ArgbBmpDump.writeBmp(
+            "tex-" + texturesDumped + "-" + img.getWidth() + "x" + img.getHeight()
+                + "-fmt" + img.getFormat() + ".bmp",
+            img.getWidth(),
+            img.getHeight(),
+            px
+        );
     }
 
     private void renderMeshNode(
@@ -222,8 +292,12 @@ public final class SoftwareM3GRenderer {
             int i2,
             VertexArray uvs,
             float[] uvScaleBias,
+            Transform texXform,
             Texture2D texture,
+            VertexArray colors,
             int defaultColor,
+            CompositingMode compositing,
+            PolygonMode polygonMode,
             IntArgbImage color,
             float[] depth,
             int vx,
@@ -234,7 +308,6 @@ public final class SoftwareM3GRenderer {
         float clipW0 = eye[i0 * 4 + 3];
         float clipW1 = eye[i1 * 4 + 3];
         float clipW2 = eye[i2 * 4 + 3];
-        // Clip against near (w<=0) — reject tris fully behind the camera.
         if (clipW0 <= 0 && clipW1 <= 0 && clipW2 <= 0) {
             return;
         }
@@ -245,7 +318,11 @@ public final class SoftwareM3GRenderer {
         float x1 = eye[i1 * 4] / clipW1, y1 = eye[i1 * 4 + 1] / clipW1, z1 = eye[i1 * 4 + 2] / clipW1;
         float x2 = eye[i2 * 4] / clipW2, y2 = eye[i2 * 4 + 1] / clipW2, z2 = eye[i2 * 4 + 2] / clipW2;
 
-        // NDC → viewport
+        // Back-face culling is intentionally not applied yet: Asphalt mixes
+        // strip winding with a Y-flipped viewport, and aggressive NDC culling
+        // removed large parts of the track in device frame dumps. Depth test
+        // still resolves overlaps.
+
         float sx0 = vx + (x0 * 0.5f + 0.5f) * vw;
         float sy0 = vy + (1f - (y0 * 0.5f + 0.5f)) * vh;
         float sx1 = vx + (x1 * 0.5f + 0.5f) * vw;
@@ -265,25 +342,55 @@ public final class SoftwareM3GRenderer {
         if (Math.abs(area) < 1e-4f) {
             return;
         }
+        boolean perspectiveUV = polygonMode == null || polygonMode.isPerspectiveCorrectionEnabled();
 
         float[] uv0 = new float[2];
         float[] uv1 = new float[2];
         float[] uv2 = new float[2];
-        sampleUV(uvs, uvScaleBias, i0, uv0);
-        sampleUV(uvs, uvScaleBias, i1, uv1);
-        sampleUV(uvs, uvScaleBias, i2, uv2);
+        sampleUV(uvs, uvScaleBias, texXform, i0, uv0);
+        sampleUV(uvs, uvScaleBias, texXform, i1, uv1);
+        sampleUV(uvs, uvScaleBias, texXform, i2, uv2);
+        // Long tiled Asphalt road tris often span dozens of UV repeats; naive
+        // attrib/w then becomes unstable. Fall back to affine for large spans.
+        float uvSpan = Math.abs(uv1[0] - uv0[0]) + Math.abs(uv2[0] - uv0[0])
+            + Math.abs(uv1[1] - uv0[1]) + Math.abs(uv2[1] - uv0[1]);
+        if (uvSpan > 2.5f) {
+            perspectiveUV = false;
+        }
 
-        // Perspective-correct: interpolate attrib/w, then divide by 1/w.
+        int c0 = vertexColor(colors, i0, defaultColor);
+        int c1 = vertexColor(colors, i1, defaultColor);
+        int c2 = vertexColor(colors, i2, defaultColor);
+
+        // Perspective-correct attribs: interpolate (attr/w) then divide by (1/w).
+        // For heavily tiled UVs (Asphalt roads, v≫1), reduce the integer tile
+        // part per-vertex before interpolate so /w stays stable, then add it back
+        // via affine tile offset.
         float iw0 = 1f / clipW0, iw1 = 1f / clipW1, iw2 = 1f / clipW2;
-        float u0w = uv0[0] * iw0, v0w = uv0[1] * iw0;
-        float u1w = uv1[0] * iw1, v1w = uv1[1] * iw1;
-        float u2w = uv2[0] * iw2, v2w = uv2[1] * iw2;
         float z0w = z0 * iw0, z1w = z1 * iw1, z2w = z2 * iw2;
+
+        float u0f = uv0[0], v0f = uv0[1];
+        float u1f = uv1[0], v1f = uv1[1];
+        float u2f = uv2[0], v2f = uv2[1];
+        // Keep UV differences moderate across a triangle (stable /w).
+        float uBase = u0f;
+        float vBase = v0f;
+        u0f -= uBase; u1f -= uBase; u2f -= uBase;
+        v0f -= vBase; v1f -= vBase; v2f -= vBase;
+        float u0w = u0f * iw0, v0w = v0f * iw0;
+        float u1w = u1f * iw1, v1w = v1f * iw1;
+        float u2w = u2f * iw2, v2w = v2f * iw2;
 
         int wrapS = texture != null ? texture.getWrappingS() : Texture2D.WRAP_REPEAT;
         int wrapT = texture != null ? texture.getWrappingT() : Texture2D.WRAP_REPEAT;
         int filter = texture != null ? texture.getImageFilter() : Texture2D.FILTER_NEAREST;
         int blend = texture != null ? texture.getBlending() : Texture2D.FUNC_REPLACE;
+        int blendColor = texture != null ? texture.getBlendColor() : 0;
+        int compBlend = compositing != null ? compositing.getBlending() : CompositingMode.REPLACE;
+        float alphaThresh = compositing != null ? compositing.getAlphaThreshold() : 0f;
+        boolean depthTest = compositing == null || compositing.isDepthTestEnabled();
+        boolean depthWrite = compositing == null || compositing.isDepthWriteEnabled();
+        boolean colorWrite = compositing == null || compositing.isColorWriteEnabled();
 
         for (int y = minY; y <= maxY; y++) {
             for (int x = minX; x <= maxX; x++) {
@@ -299,28 +406,47 @@ public final class SoftwareM3GRenderer {
                 }
                 float z = (a0 * z0w + a1 * z1w + a2 * z2w) / invW;
                 int di = y * color.width + x;
-                if (depth != null) {
+                if (depth != null && depthTest) {
                     if (z >= depth[di]) {
                         continue;
                     }
+                }
+                if (depth != null && depthWrite) {
                     depth[di] = z;
                 }
-                int frag = defaultColor | 0xFF000000;
-                if (texture != null && texture.getImage() != null) {
-                    float u = (a0 * u0w + a1 * u1w + a2 * u2w) / invW;
-                    float v = (a0 * v0w + a1 * v1w + a2 * v2w) / invW;
-                    int tex = texture.getImage().sampleARGB(u, v, wrapS, wrapT, filter);
-                    frag = applyTextureBlend(blend, tex, defaultColor);
+                if (!colorWrite) {
+                    continue;
                 }
-                color.data[di] = frag;
+
+                int frag = lerpColor(c0, c1, c2, a0, a1, a2);
+                if (texture != null && texture.getImage() != null) {
+                    float u;
+                    float v;
+                    if (perspectiveUV) {
+                        u = uBase + (a0 * u0w + a1 * u1w + a2 * u2w) / invW;
+                        v = vBase + (a0 * v0w + a1 * v1w + a2 * v2w) / invW;
+                    } else {
+                        u = a0 * uv0[0] + a1 * uv1[0] + a2 * uv2[0];
+                        v = a0 * uv0[1] + a1 * uv1[1] + a2 * uv2[1];
+                    }
+                    int tex = texture.getImage().sampleARGB(u, v, wrapS, wrapT, filter);
+                    frag = applyTextureBlend(blend, tex, frag, blendColor);
+                }
+
+                int fa = (frag >>> 24) & 0xFF;
+                if (fa < (int) (alphaThresh * 255f)) {
+                    continue;
+                }
+                color.data[di] = applyCompositing(compBlend, frag, color.data[di]);
             }
         }
     }
 
-    /** JSR-184 texture functions (REPLACE / MODULATE / DECAL / BLEND / ADD). */
-    private static int applyTextureBlend(int func, int tex, int frag) {
+    /** JSR-184 texture functions. FUNC_BLEND uses Texture2D blend colour. */
+    private static int applyTextureBlend(int func, int tex, int frag, int blendRGB) {
         int ta = (tex >>> 24) & 0xFF, tr = (tex >>> 16) & 0xFF, tg = (tex >>> 8) & 0xFF, tb = tex & 0xFF;
         int fa = (frag >>> 24) & 0xFF, fr = (frag >>> 16) & 0xFF, fg = (frag >>> 8) & 0xFF, fb = frag & 0xFF;
+        int br = (blendRGB >>> 16) & 0xFF, bg = (blendRGB >>> 8) & 0xFF, bb = blendRGB & 0xFF;
         int oa = fa, or, og, ob;
         switch (func) {
             case Texture2D.FUNC_MODULATE:
@@ -335,9 +461,11 @@ public final class SoftwareM3GRenderer {
                 ob = (tb * ta + fb * (255 - ta)) / 255;
                 break;
             case Texture2D.FUNC_BLEND:
-                or = (tr * fr + (255 - ta) * fr) / 255; // approx with blend color=frag
-                og = (tg * fg + (255 - ta) * fg) / 255;
-                ob = (tb * fb + (255 - ta) * fb) / 255;
+                // Cf = Cp*(1-Ct) + Cc*Ct  (Cc = blend colour)
+                or = (fr * (255 - tr) + br * tr) / 255;
+                og = (fg * (255 - tg) + bg * tg) / 255;
+                ob = (fb * (255 - tb) + bb * tb) / 255;
+                oa = (ta * fa) / 255;
                 break;
             case Texture2D.FUNC_ADD:
                 or = Math.min(255, tr + fr);
@@ -350,21 +478,97 @@ public final class SoftwareM3GRenderer {
                 or = tr;
                 og = tg;
                 ob = tb;
-                oa = ta == 0 ? 255 : ta;
+                oa = ta;
                 break;
         }
-        // LCD path is opaque ARGB; keep coverage visible.
-        if (oa < 16) {
+        if (oa == 0 && func == Texture2D.FUNC_REPLACE) {
             oa = 255;
         }
         return (oa << 24) | (or << 16) | (og << 8) | ob;
+    }
+
+    private static int applyCompositing(int mode, int src, int dst) {
+        int sa = (src >>> 24) & 0xFF, sr = (src >>> 16) & 0xFF, sg = (src >>> 8) & 0xFF, sb = src & 0xFF;
+        int da = (dst >>> 24) & 0xFF, dr = (dst >>> 16) & 0xFF, dg = (dst >>> 8) & 0xFF, db = dst & 0xFF;
+        switch (mode) {
+            case CompositingMode.ALPHA:
+                return ((255 << 24)
+                    | (((sr * sa + dr * (255 - sa)) / 255) << 16)
+                    | (((sg * sa + dg * (255 - sa)) / 255) << 8)
+                    | ((sb * sa + db * (255 - sa)) / 255));
+            case CompositingMode.ALPHA_ADD:
+                return ((255 << 24)
+                    | (Math.min(255, sr + (dr * sa) / 255) << 16)
+                    | (Math.min(255, sg + (dg * sa) / 255) << 8)
+                    | Math.min(255, sb + (db * sa) / 255));
+            case CompositingMode.MODULATE:
+                return ((255 << 24)
+                    | ((sr * dr) / 255 << 16)
+                    | ((sg * dg) / 255 << 8)
+                    | ((sb * db) / 255));
+            case CompositingMode.MODULATE_X2:
+                return ((255 << 24)
+                    | (Math.min(255, (sr * dr * 2) / 255) << 16)
+                    | (Math.min(255, (sg * dg * 2) / 255) << 8)
+                    | Math.min(255, (sb * db * 2) / 255));
+            case CompositingMode.REPLACE:
+            default:
+                return src | 0xFF000000;
+        }
+    }
+
+    private static int vertexColor(VertexArray colors, int index, int fallback) {
+        if (colors == null) {
+            return fallback;
+        }
+        float[] tmp = new float[4];
+        colors.getFloat(index, tmp);
+        int comps = colors.getComponentCount();
+        // Byte colours arrive unsigned 0..255 via getFloat.
+        int r = (int) tmp[0] & 0xFF;
+        int g = comps > 1 ? ((int) tmp[1] & 0xFF) : r;
+        int b = comps > 2 ? ((int) tmp[2] & 0xFF) : r;
+        int a = comps > 3 ? ((int) tmp[3] & 0xFF) : 255;
+        return (a << 24) | (r << 16) | (g << 8) | b;
+    }
+
+    private static int lerpColor(int c0, int c1, int c2, float a0, float a1, float a2) {
+        int r = (int) (a0 * ((c0 >>> 16) & 0xFF) + a1 * ((c1 >>> 16) & 0xFF) + a2 * ((c2 >>> 16) & 0xFF));
+        int g = (int) (a0 * ((c0 >>> 8) & 0xFF) + a1 * ((c1 >>> 8) & 0xFF) + a2 * ((c2 >>> 8) & 0xFF));
+        int b = (int) (a0 * (c0 & 0xFF) + a1 * (c1 & 0xFF) + a2 * (c2 & 0xFF));
+        int a = (int) (a0 * ((c0 >>> 24) & 0xFF) + a1 * ((c1 >>> 24) & 0xFF) + a2 * ((c2 >>> 24) & 0xFF));
+        r = clamp255(r);
+        g = clamp255(g);
+        b = clamp255(b);
+        a = clamp255(a);
+        return (a << 24) | (r << 16) | (g << 8) | b;
+    }
+
+    private static int clamp255(int v) {
+        if (v < 0) {
+            return 0;
+        }
+        if (v > 255) {
+            return 255;
+        }
+        return v;
     }
 
     private static float edge(float ax, float ay, float bx, float by, float cx, float cy) {
         return (cx - ax) * (by - ay) - (cy - ay) * (bx - ax);
     }
 
-    private static void sampleUV(VertexArray uvs, float[] scaleBias, int index, float[] out) {
+    /**
+     * Scale/bias texcoords then apply Texture2D composite transform and
+     * project by q' (JSR-184 texture pipeline).
+     */
+    private static void sampleUV(
+            VertexArray uvs,
+            float[] scaleBias,
+            Transform texXform,
+            int index,
+            float[] out
+    ) {
         out[0] = 0;
         out[1] = 0;
         if (uvs == null) {
@@ -375,7 +579,22 @@ public final class SoftwareM3GRenderer {
         float scale = scaleBias != null ? scaleBias[0] : 1f;
         float bx = scaleBias != null && scaleBias.length > 1 ? scaleBias[1] : 0;
         float by = scaleBias != null && scaleBias.length > 2 ? scaleBias[2] : 0;
-        out[0] = tmp[0] * scale + bx;
-        out[1] = (uvs.getComponentCount() > 1 ? tmp[1] : 0) * scale + by;
+        float bz = scaleBias != null && scaleBias.length > 3 ? scaleBias[3] : 0;
+        float s = tmp[0] * scale + bx;
+        float t = (uvs.getComponentCount() > 1 ? tmp[1] : 0) * scale + by;
+        float r = (uvs.getComponentCount() > 2 ? tmp[2] : 0) * scale + bz;
+        if (texXform != null) {
+            float[] p = new float[] { s, t, r, 1f };
+            texXform.transform(p);
+            if (p[3] != 0f && p[3] != 1f) {
+                s = p[0] / p[3];
+                t = p[1] / p[3];
+            } else {
+                s = p[0];
+                t = p[1];
+            }
+        }
+        out[0] = s;
+        out[1] = t;
     }
 }

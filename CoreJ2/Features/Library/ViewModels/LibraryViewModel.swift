@@ -322,6 +322,7 @@ final class LibraryViewModel: ObservableObject {
         armUISwitchTestIfNeeded(after: game)
         armQATapScriptIfNeeded(viewModel: nextVM)
         armQAKeyScriptIfNeeded(viewModel: nextVM)
+        armQADpadSlideIfNeeded(viewModel: nextVM)
         armQAAudioStopIfNeeded()
     }
 
@@ -386,6 +387,42 @@ final class LibraryViewModel: ObservableObject {
                 try? await Task.sleep(for: .milliseconds(80))
                 viewModel.keyUp(key)
             }
+        }
+    }
+
+    /// QA: `Documents/qa-dpad-slide` — simulate continuous D-pad slide without lifting:
+    /// left → diagonal(left+up) → up, with hold-repeat, then release.
+    private func armQADpadSlideIfNeeded(viewModel: EmulatorViewModel) {
+        let fileManager = FileManager.default
+        guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            return
+        }
+        let flag = documentsURL.appendingPathComponent("qa-dpad-slide", isDirectory: false)
+        guard fileManager.fileExists(atPath: flag.path) else { return }
+        try? fileManager.removeItem(at: flag)
+        Self.appendLaunchDiagnostic("qa-dpad-slide armed")
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(2500))
+            // Press left
+            Self.appendLaunchDiagnostic("qa-dpad-slide down left")
+            viewModel.keyDown(J2MEKeyCode.left)
+            try? await Task.sleep(for: .milliseconds(200))
+            viewModel.keyRepeat(J2MEKeyCode.left)
+            // Slide to diagonal: keep left, add up
+            Self.appendLaunchDiagnostic("qa-dpad-slide diagonal left+up")
+            viewModel.keyDown(J2MEKeyCode.up)
+            try? await Task.sleep(for: .milliseconds(150))
+            viewModel.keyRepeat(J2MEKeyCode.left)
+            viewModel.keyRepeat(J2MEKeyCode.up)
+            // Slide to up only: release left
+            Self.appendLaunchDiagnostic("qa-dpad-slide up-only (release left)")
+            viewModel.keyUp(J2MEKeyCode.left)
+            try? await Task.sleep(for: .milliseconds(150))
+            viewModel.keyRepeat(J2MEKeyCode.up)
+            // Release
+            Self.appendLaunchDiagnostic("qa-dpad-slide release up")
+            viewModel.keyUp(J2MEKeyCode.up)
+            Self.appendLaunchDiagnostic("qa-dpad-slide done")
         }
     }
 
