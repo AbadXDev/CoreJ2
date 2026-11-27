@@ -128,3 +128,5 @@ games/*.jar
 *.log
 ThirdParty/OpenJDKMobile/src
 artifacts/openjdk-mobile/jlink-ios-java.home/
+artifacts/**/*.class
+artifacts/**/*.class

@@ -1,39 +1,11 @@
 # Technical Reports
 
-Engineering reports kept in-tree. Denser than the public guides.
+Engineering notes kept in-tree.
 
-## Product / bridge docs
+## Clean-room MIDP
 
-- [E5_US003_PERSISTENT_RUNTIME_DESIGN.md](E5_US003_PERSISTENT_RUNTIME_DESIGN.md)
-- [E5_US004_PERSISTENT_RUNTIME_POC.md](E5_US004_PERSISTENT_RUNTIME_POC.md)
-- [E5_US005_PERSISTENT_RUNTIME_MIGRATION.md](E5_US005_PERSISTENT_RUNTIME_MIGRATION.md)
-- [EMULATOR_ARCHITECTURE.md](EMULATOR_ARCHITECTURE.md)
-- [FREEJ2ME_ASSESSMENT.md](FREEJ2ME_ASSESSMENT.md)
-- [FREEJ2ME_INTEGRATION_STRATEGY.md](FREEJ2ME_INTEGRATION_STRATEGY.md)
-- [FREEJ2ME_RUNTIME_CONTRACT.md](FREEJ2ME_RUNTIME_CONTRACT.md)
-- [FREEJ2ME_SOURCE_AUDIT.md](FREEJ2ME_SOURCE_AUDIT.md)
-
-## Architecture folder
-
-- [E6_S001_OPENJDK_MOBILE_BRINGUP.md](Architecture/E6_S001_OPENJDK_MOBILE_BRINGUP.md)
-- [E6_S002_OPENJDK_MOBILE_ZERO_IOS.md](Architecture/E6_S002_OPENJDK_MOBILE_ZERO_IOS.md)
-- [E6_US001_REPLACE_NATIVE_JVM_STUBS.md](Architecture/E6_US001_REPLACE_NATIVE_JVM_STUBS.md)
-- [E6_US002_EMBEDDED_OPENJDK_MOBILE_RUNTIME.md](Architecture/E6_US002_EMBEDDED_OPENJDK_MOBILE_RUNTIME.md)
-- [E6_US003_EMBEDDED_FREEJ2ME_BRINGUP.md](Architecture/E6_US003_EMBEDDED_FREEJ2ME_BRINGUP.md)
-- [E6_US004_REAL_MIDLET_SMOKE.md](Architecture/E6_US004_REAL_MIDLET_SMOKE.md)
-- [E6_US005_COMPATIBILITY_SMOKE.md](Architecture/E6_US005_COMPATIBILITY_SMOKE.md)
-- [E6_US006_NON_CANVAS_DISPLAYABLE.md](Architecture/E6_US006_NON_CANVAS_DISPLAYABLE.md)
-- [E6_US007_GAMEPLAY_STABILITY.md](Architecture/E6_US007_GAMEPLAY_STABILITY.md)
-- [E6_US008_SYSTEM_EXIT_CONTAINMENT.md](Architecture/E6_US008_SYSTEM_EXIT_CONTAINMENT.md)
-- [E6_US009_PAINTER_THREAD_SAFETY.md](Architecture/E6_US009_PAINTER_THREAD_SAFETY.md)
-- [EMBEDDED_JVM_ARCHITECTURE.md](Architecture/EMBEDDED_JVM_ARCHITECTURE.md)
-- [EMBEDDED_JVM_MANAGER.md](Architecture/EMBEDDED_JVM_MANAGER.md)
-- [IMPLEMENTATION_ROADMAP.md](Architecture/IMPLEMENTATION_ROADMAP.md)
-- [JNI_GATEWAY_ARCHITECTURE.md](Architecture/JNI_GATEWAY_ARCHITECTURE.md)
-- [JVM_FEASIBILITY_STUDY.md](Architecture/JVM_FEASIBILITY_STUDY.md)
-- [OPENJDK_MOBILE_BUILD.md](Architecture/OPENJDK_MOBILE_BUILD.md)
-- [PHASE1_5_OPENJDK_MOBILE_SPIKE.md](Architecture/PHASE1_5_OPENJDK_MOBILE_SPIKE.md)
-- [PHASE1_EMBEDDED_JVM_SPIKE.md](Architecture/PHASE1_EMBEDDED_JVM_SPIKE.md)
+- [API surface inventory](midp-propia-inventario.md) — the MIDP/CLDC/MMAPI/M3G surface used by the validated titles.
+- [Phase 3 compatibility matrix](midp-propia-fase3-matriz.md) — pure-classpath device matrix and provenance audit.
 
 ## Public product docs
 
@@ -42,12 +14,3 @@ Engineering reports kept in-tree. Denser than the public guides.
 - [Architecture](architecture.md)
 - [Compatibility](compatibility.md)
 - [Performance](performance.md)
-
-## Validation artifacts
-
-Device write-ups under `artifacts/` (not all mirrored to Pages):
-
-- `artifacts/e11-us001-gameplay-validation/REPORT.md`
-- `artifacts/e11-us002-relaunch-lifecycle/REPORT.md`
-- `artifacts/e11-us003-rms-compatibility/REPORT.md`
-

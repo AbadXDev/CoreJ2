@@ -1,0 +1,38 @@
+CoreJ2 License — Free for Personal Use
+
+Copyright © 2026 Leonel Figuereo (AbadXDev)
+
+The CoreJ2 application code and the CoreJ2 clean-room MIDP implementation
+(the "Software") are free to use, copy, modify, and share under the
+following terms:
+
+1. Personal, non-commercial use only.
+   You may use the Software for personal, educational, and other
+   non-commercial purposes, free of charge.
+
+2. No commercial use.
+   You may not sell the Software, charge for it, or use it in any
+   commercial product, service, or activity without prior written
+   permission from the copyright holder.
+
+3. Credit is mandatory.
+   If you publish the Software anywhere, redistribute it, or use any
+   part of it in another project, you must credit the original author:
+   "CoreJ2 by Leonel Figuereo (AbadXDev) — https://github.com/AbadXDev/CoreJ2".
+   This credit must be visible in the project (for example in its README,
+   about screen, or documentation). Removing or hiding the credit is not
+   allowed.
+
+4. Keep the notices.
+   Copies and derivative works must keep this license and the copyright
+   notice above.
+
+5. No warranty.
+   The Software is provided "as is", without warranty of any kind. The
+   author is not liable for any damages arising from its use.
+
+Third-party components keep their own licenses and are not covered by
+this license:
+- OpenJDK Mobile: GPLv2 with the Classpath Exception.
+- ObjectWeb ASM: BSD license.
+- Vendor/FreeJ2ME (reference only; not shipped in the app): GPL-3.0.

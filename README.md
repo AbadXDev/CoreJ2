@@ -2,7 +2,7 @@
 
 **Run classic Java ME (J2ME) games natively on iPhone & iPad.**
 
-Embedded OpenJDK Mobile · Clean-room MIDP · SwiftUI · Open Source
+Embedded OpenJDK Mobile · Clean-room MIDP · SwiftUI · Free for personal use
 
 <p align="center">
   <img src="docs/assets/gifs/miami-nights.gif" alt="Miami Nights gameplay on CoreJ2" width="360" />
@@ -14,7 +14,7 @@ Embedded OpenJDK Mobile · Clean-room MIDP · SwiftUI · Open Source
 
 <p align="center">
   <a href="https://github.com/AbadXDev/CoreJ2/releases"><img src="https://img.shields.io/badge/version-0.9.0--alpha-blue?style=for-the-badge" alt="Version" /></a>
-  <a href="https://github.com/AbadXDev/CoreJ2"><img src="https://img.shields.io/badge/license-See%20repo-lightgrey?style=for-the-badge" alt="License" /></a>
+  <a href="https://github.com/AbadXDev/CoreJ2/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Personal%20use%20%C2%B7%20Attribution-2563EB?style=for-the-badge" alt="License" /></a>
   <img src="https://img.shields.io/badge/status-Alpha-orange?style=for-the-badge" alt="Alpha" />
 </p>
 
@@ -214,7 +214,14 @@ See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
 ## License
 
-- **CoreJ2 application code and clean-room MIDP**: see repository terms.
+**CoreJ2 is 100% free for personal, non-commercial use.** Commercial use is
+not allowed without prior written permission from the author. If you publish
+CoreJ2 anywhere or use any part of it in another project, **credit is
+mandatory**: "CoreJ2 by Leonel Figuereo (AbadXDev)". See [LICENSE](LICENSE)
+for the full terms.
+
+Third-party components keep their own licenses:
+
 - **OpenJDK Mobile**: GPLv2 with the Classpath Exception.
 - **ObjectWeb ASM**: BSD license.
 - **`Vendor/FreeJ2ME`** (reference only, not shipped in the app): **GPL-3.0**.
@@ -228,4 +235,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
   <a href="CHANGELOG.md">Changelog</a>
 </p>
 
-<p align="center">Copyright © CoreJ2 contributors</p>
+<p align="center">Copyright © 2026 Leonel Figuereo (AbadXDev)</p>
